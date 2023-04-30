@@ -22,7 +22,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
     const buf = await buffer(req);
     let receivedEvent;
     try {
-      receivedEvent = await stripe.webhooks.constructEventAsync(
+      receivedEvent = stripe.webhooks.constructEvent(
         buf.toString(),
         signature,
         stripeWebhookSigningSecret
