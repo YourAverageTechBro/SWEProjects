@@ -153,7 +153,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
         await resend.sendEmail({
           from: "noreply@updates.sweprojects.com",
           to: emailAddress,
-          subject: "Welcome to SWE Projects! Here are some helpful links",
+          subject: "Here's the project tutorial you purchased 🚀",
           react: (
             <ProjectPurchaseEmail
               projectName={project.title}
@@ -165,7 +165,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
         });
 
         req.log.info(
-          "[stripe-webhook][checkout.session.completed] Completed endpoint"
+          "[api/stripe-webhook][checkout.session.completed] Completed endpoint"
         );
       default:
         break;
@@ -173,7 +173,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
     res.status(200).json({ status: "success" });
   } catch (error: any) {
     if (error instanceof Error) {
-      req.log.error("[stripe-webhook] Error ", {
+      req.log.error("[api/stripe-webhook] Error ", {
         error: error.message,
       });
     }
