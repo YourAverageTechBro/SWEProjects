@@ -26,7 +26,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
     if (!stripeWebhookSigningSecret) {
       throw new Error("Missing Stripe Webhook Signing Secret");
     }
-    const signature = req.headers["Stripe-Signature"] as string;
+    const signature = req.headers["stripe-signature"] as string;
     const buf = await buffer(req);
     let receivedEvent;
     try {
@@ -37,7 +37,14 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
       );
     } catch (err: unknown) {
       if (err instanceof Error) {
-        return new Response(err.message, { status: 400 });
+        const error = err.message;
+        req.log.error(
+          "[api/stripe-webhook][checkout.session.completed] Error",
+          {
+            error,
+          }
+        );
+        throw Error(error);
       }
     }
 
@@ -62,7 +69,14 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
       );
     } catch (err: unknown) {
       if (err instanceof Error) {
-        return new Response(err.message, { status: 400 });
+        const error = err.message;
+        req.log.error(
+          "[api/stripe-webhook][checkout.session.completed] Error",
+          {
+            error,
+          }
+        );
+        throw Error(error);
       }
     }
 
