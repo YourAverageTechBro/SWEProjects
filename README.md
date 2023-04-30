@@ -1,29 +1,55 @@
-# Create T3 App
+<img  src="./assets/SWEProjects-logo-large.png" alt="SWEProjects" width="440" height="160">
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## What's next? How do I make an app with this?
+# SWE Projects
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+SWE Projects is an open source project that aims to help people build projects that go beyond working on localhost.
+It aims to create high quality tutorials for high quality projects. 
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+[sweprojects.com](https://sweprojects.com)
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
 
-## Learn More
+## Why SWE Projects?
+SWE Projects was created to be the go-to destination of high quality coding projects and tutorials on how to build them.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Most existing coding tutorials are random articles found on the internet or multiple hour long videos on Youtube that say a project is "complete" once it works on localhost.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+We want to change that by creating high quality tutorials for technically impressive projects that you can actually deploy out onto the internet and share with friends, families, recruiters. 
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
 
-## How do I deploy this?
+## Get Started
+To run SWE Projects locally, just run the following commands install the dependencies and run the app locally.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
-# SWEProjects
+```
+npm install
+
+npm run dev
+```
+
+We currently do not provide access to the database with the coding instructions. You will need to create your own database and update the connection string in a .env file.
+
+We are working on writing up some instructions on how to create your own database instance to develop locally. 
+
+## Is SWE Projects Free?
+
+We plan to include the source code for every project that we write a tutorial for. However, we do plan to charge for the step-by-step written tutorials at [sweprojects.com](https://sweprojects.com).
+
+## Community & Support
+
+
+* [Discord](https://discord.gg/2p2e5tTmzw) — chat with the SWE Projects team and other developers
+* [Canny](https://sweprojects.canny.io/feature-requests) - Request/upvote feature requests and project requests
+* [GitHub issues](https://github.com/YourAverageTechBro/SWEProjects/issues/new) - to report bugs
+
+## How You Can Contribute
+### Submit a project + Write a Tutorial
+
+Have a project that you built that you want to write a tutorial for? Join our [Discord](https://discord.gg/2p2e5tTmzw) and
+post a message in the `#project-proposal` channel. If you create a project tutorial, we will split all sales of the
+project tutorial with you — a great way to make some extra income. 
+
+### Translate an existing project to another language
+We want to make sure that every project in SWE Projects is offered in a variety of languages and tech stacks.
+If you see a project that you want to translate into a different project, join our [Discord](https://discord.gg/2p2e5tTmzw)
+and post a message in the `#project-translation` channel.
+
