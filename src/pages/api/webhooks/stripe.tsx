@@ -48,125 +48,8 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
       case "checkout.session.completed":
         // Payment is successful and the subscription is created.
         // You should provision the subscription and save the customer ID to your database.
-        req.log.info(
-          "[api/stripe-webhook][checkout.session.completed] receivedEvent: ",
-          receivedEvent
-        );
-        const checkoutSession = receivedEvent.data
-          .object as Stripe.Checkout.Session;
-        const successUrl = checkoutSession.success_url;
-
-        if (!successUrl) {
-          const error = "success_url not found in checkout session";
-          req.log.error(
-            "[api/stripe-webhook][checkout.session.completed] Error",
-            {
-              error,
-              successUrl,
-            }
-          );
-          throw Error(error);
-        }
-
-        const queryParams = successUrl.split("?")[1];
-
-        if (!queryParams) {
-          const error = "queryParams not found in success_url";
-          req.log.error(
-            "[api/stripe-webhook][checkout.session.completed] Error",
-            {
-              error,
-              successUrl,
-            }
-          );
-          throw Error(error);
-        }
-
-        const userId = queryParams.split("&")[0]?.split("=")[1];
-        const projectId = queryParams.split("&")[1]?.split("=")[1];
-
-        if (!userId) {
-          const error = "projectId not found in queryParams";
-          req.log.error(
-            `[api/stripe-webhook][checkout.session.completed] Error`,
-            {
-              error,
-              queryParams,
-            }
-          );
-          throw Error(error);
-        }
-
-        if (!projectId) {
-          const error = "projectId not found in queryParams";
-          req.log.error(
-            `[api/stripe-webhook][checkout.session.completed] Error`,
-            {
-              error,
-              queryParams,
-            }
-          );
-          throw Error(error);
-        }
-
-        await prisma.purchases.create({
-          data: {
-            projectsId: projectId,
-            userId,
-          },
-        });
-
-        const emailAddress = checkoutSession.customer_details?.email;
-        if (!emailAddress) {
-          const error = "emailAddress not found in checkout session";
-          req.log.error(
-            `[api/stripe-webhook][checkout.session.completed] Error `,
-            {
-              error,
-              customerDetails: checkoutSession.customer_details,
-            }
-          );
-          throw Error(error);
-        }
-
-        const project = await prisma.projects.findUnique({
-          where: {
-            id: projectId,
-          },
-          select: {
-            title: true,
-          },
-        });
-
-        if (!project) {
-          const error = "project not found";
-          req.log.error(
-            `[api/stripe-webhook][checkout.session.completed] Error `,
-            {
-              error,
-              projectId,
-            }
-          );
-          throw Error(error);
-        }
-
-        await resend.sendEmail({
-          from: "noreply@updates.sweprojects.com",
-          to: emailAddress,
-          subject: "Here's the project tutorial you purchased 🚀",
-          react: (
-            <ProjectPurchaseEmail
-              projectName={project.title}
-              projectUrl={`${
-                process.env.NEXT_PUBLIC_BASE_URL ?? ""
-              }/projects/${projectId}`}
-            />
-          ),
-        });
-
-        req.log.info(
-          "[api/stripe-webhook][checkout.session.completed] Completed endpoint"
-        );
+        await handleCheckoutSessionCompleted(req, receivedEvent);
+        break;
       default:
         break;
     }
@@ -179,7 +62,112 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
     }
     res.status(500).json({ status: "failed" });
   }
-  res.status(500).json({ status: "failed" });
 }
+
+const handleCheckoutSessionCompleted = async (
+  req: AxiomAPIRequest,
+  receivedEvent: Stripe.Event
+) => {
+  req.log.info(
+    "[api/stripe-webhook][checkout.session.completed] receivedEvent: ",
+    receivedEvent
+  );
+  const checkoutSession = receivedEvent.data.object as Stripe.Checkout.Session;
+  const successUrl = checkoutSession.success_url;
+
+  if (!successUrl) {
+    const error = "success_url not found in checkout session";
+    req.log.error("[api/stripe-webhook][checkout.session.completed] Error", {
+      error,
+      successUrl,
+    });
+    throw Error(error);
+  }
+
+  const queryParams = successUrl.split("?")[1];
+
+  if (!queryParams) {
+    const error = "queryParams not found in success_url";
+    req.log.error("[api/stripe-webhook][checkout.session.completed] Error", {
+      error,
+      successUrl,
+    });
+    throw Error(error);
+  }
+
+  const userId = queryParams.split("&")[0]?.split("=")[1];
+  const projectId = queryParams.split("&")[1]?.split("=")[1];
+
+  if (!userId) {
+    const error = "projectId not found in queryParams";
+    req.log.error(`[api/stripe-webhook][checkout.session.completed] Error`, {
+      error,
+      queryParams,
+    });
+    throw Error(error);
+  }
+
+  if (!projectId) {
+    const error = "projectId not found in queryParams";
+    req.log.error(`[api/stripe-webhook][checkout.session.completed] Error`, {
+      error,
+      queryParams,
+    });
+    throw Error(error);
+  }
+
+  await prisma.purchases.create({
+    data: {
+      projectsId: projectId,
+      userId,
+    },
+  });
+
+  const emailAddress = checkoutSession.customer_details?.email;
+  if (!emailAddress) {
+    const error = "emailAddress not found in checkout session";
+    req.log.error(`[api/stripe-webhook][checkout.session.completed] Error `, {
+      error,
+      customerDetails: checkoutSession.customer_details,
+    });
+    throw Error(error);
+  }
+
+  const project = await prisma.projects.findUnique({
+    where: {
+      id: projectId,
+    },
+    select: {
+      title: true,
+    },
+  });
+
+  if (!project) {
+    const error = "project not found";
+    req.log.error(`[api/stripe-webhook][checkout.session.completed] Error `, {
+      error,
+      projectId,
+    });
+    throw Error(error);
+  }
+
+  await resend.sendEmail({
+    from: "noreply@updates.sweprojects.com",
+    to: emailAddress,
+    subject: "Here's the project tutorial you purchased 🚀",
+    react: (
+      <ProjectPurchaseEmail
+        projectName={project.title}
+        projectUrl={`${
+          process.env.NEXT_PUBLIC_BASE_URL ?? ""
+        }/projects/${projectId}`}
+      />
+    ),
+  });
+
+  req.log.info(
+    "[api/stripe-webhook][checkout.session.completed] Completed endpoint"
+  );
+};
 
 export default withAxiom(handler);
