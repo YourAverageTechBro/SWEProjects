@@ -1,13 +1,38 @@
 import { useRouter } from "next/router";
-import { api } from "~/utils/api";
 import DraftPageComponent from "../../components/DraftProjects/DraftPageComponent";
-import { BackendVariant, FrontendVariant } from "@prisma/client";
+import {
+  BackendVariant,
+  type CodeBlocks,
+  FrontendVariant,
+  type Instructions,
+  type Projects,
+  type ProjectVariant,
+  type Purchases,
+  type SuccessMedia,
+} from "@prisma/client";
 import React, { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
-import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+import { type GetServerSideProps } from "next";
+import { getAuth } from "@clerk/nextjs/server";
 
-export default function EditProject() {
+type Props = {
+  project:
+    | (Projects & {
+        purchases: Purchases[];
+        projectVariants: (ProjectVariant & {
+          instructions: (Instructions & {
+            successMedia: SuccessMedia[];
+            codeBlock: CodeBlocks[];
+          })[];
+        })[];
+      })
+    | null
+    | undefined;
+};
+
+export default function EditProject({ project }: Props) {
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
@@ -15,31 +40,19 @@ export default function EditProject() {
     projectId: string;
     successfullyPurchased?: string;
   };
-  const { data, isFetching } = api.projects.getById.useQuery(
-    {
-      projectId,
-      frontendVariant: FrontendVariant.NextJS,
-      backendVariant: BackendVariant.Supabase,
-      userId,
-    },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
   if (!projectId) return <div>404</div>;
-  if (!data) return <div>404</div>;
-  const isAuthor = userId === data.authorId;
-  if (isFetching) return <LoadingSpinner />;
-  if (data.purchases.length === 0 && !isAuthor) return <div> 404 </div>;
+  if (!project) return <div>404</div>;
+  const isAuthor = userId === project.authorId;
+  if (project?.purchases?.length === 0 && !isAuthor) return <div> 404 </div>;
 
-  const projectVariant = data.projectVariants[0];
+  const projectVariant = project?.projectVariants?.[0];
 
   return (
     <>
       <Header />
       <div className={"flex h-full w-full flex-col gap-4"}>
         <div className={"p-16"}>
-          {userId === data.authorId && !isEditing && (
+          {userId === project.authorId && !isEditing && (
             <button
               type="button"
               className="mb-8 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -49,7 +62,7 @@ export default function EditProject() {
             </button>
           )}
 
-          {userId === data.authorId && isEditing && (
+          {userId === project.authorId && isEditing && (
             <button
               type="button"
               className="mb-8 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -92,3 +105,30 @@ export default function EditProject() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<Props> = async (
+  context
+) => {
+  const { userId } = getAuth(context.req);
+  if (!userId) {
+    return {
+      props: { project: null },
+    };
+  }
+  const ssg = generateSSGHelper();
+  const projectId = context.params?.projectId as string;
+  if (!projectId) return { props: { project: null } };
+  const project = await ssg.projects.getById.fetch({
+    projectId,
+    frontendVariant: FrontendVariant.NextJS,
+    backendVariant: BackendVariant.Supabase,
+    userId,
+  });
+  return {
+    props: {
+      // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      project: JSON.parse(JSON.stringify(project)),
+    },
+  };
+};
