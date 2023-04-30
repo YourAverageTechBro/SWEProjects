@@ -1,0 +1,80 @@
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Projects {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  authorId        String
+  projectVariants ProjectVariant[]
+  thumbnailUrl    String           @default("")
+  title           String           @default("") @db.LongText
+  description     String           @default("") @db.LongText
+  stripePriceId   String           @default("")
+  purchases       Purchases[]
+  preRequisites   String?          @default("") @db.LongText
+
+  @@index([authorId])
+}
+
+model Purchases {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  Projects   Projects? @relation(fields: [projectsId], references: [id])
+  projectsId String?
+  userId     String
+}
+
+model ProjectVariant {
+  id              String          @id @default(cuid())
+  createdAt       DateTime        @default(now())
+  frontendVariant FrontendVariant
+  backendVariant  BackendVariant
+  instructions    Instructions[]
+  Projects        Projects?       @relation(fields: [projectsId], references: [id])
+  projectsId      String?
+}
+
+model Instructions {
+  id               String          @id @default(cuid())
+  createdAt        DateTime        @default(now())
+  explanation      String          @default("") @db.LongText
+  ProjectVariant   ProjectVariant? @relation(fields: [projectVariantId], references: [id])
+  projectVariantId String?
+  hasCodeBlocks    Boolean         @default(true)
+  codeBlock        CodeBlocks[]
+  successMedia     SuccessMedia[]
+}
+
+model CodeBlocks {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  instructionsId String
+  instructions   Instructions? @relation(fields: [instructionsId], references: [id])
+  code           String        @db.LongText
+  fileName       String
+}
+
+model SuccessMedia {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  instructionsId String
+  instructions   Instructions? @relation(fields: [instructionsId], references: [id], onDelete: Cascade)
+  mediaUrl       String
+  caption        String?
+}
+
+enum FrontendVariant {
+  NextJS
+}
+
+enum BackendVariant {
+  Supabase
+  PlanetScale
+}
