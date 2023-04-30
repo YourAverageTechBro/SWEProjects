@@ -28,73 +28,31 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
     }
     const signature = req.headers["stripe-signature"] as string;
     const buf = await buffer(req);
-    let receivedEvent;
-    try {
-      receivedEvent = stripe.webhooks.constructEvent(
-        buf.toString(),
-        signature,
-        stripeWebhookSigningSecret
-      );
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        const error = err.message;
-        req.log.error(
-          "[api/stripe-webhook][checkout.session.completed] Error",
-          {
-            error,
-          }
-        );
-        throw Error(error);
-      }
-    }
+    const receivedEvent = stripe.webhooks.constructEvent(
+      buf.toString(),
+      signature,
+      stripeWebhookSigningSecret
+    );
 
     if (!receivedEvent) {
-      throw Error("receivedEvent is undefined");
+      const error = "receivedEvent is undefined";
+      req.log.error("[api/stripe-webhook] Error", {
+        error,
+      });
+      throw Error(error);
     }
 
-    // Secondly, we use this event to query the Stripe API in order to avoid
-    // handling any forged event. If available, we use the idempotency key.
-    const requestOptions =
-      receivedEvent.request && receivedEvent.request.idempotency_key
-        ? {
-            idempotencyKey: receivedEvent.request.idempotency_key,
-          }
-        : {};
-
-    let retrievedEvent;
-    try {
-      retrievedEvent = await stripe.events.retrieve(
-        receivedEvent.id,
-        requestOptions
-      );
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        const error = err.message;
-        req.log.error(
-          "[api/stripe-webhook][checkout.session.completed] Error",
-          {
-            error,
-          }
-        );
-        throw Error(error);
-      }
-    }
-
-    if (!retrievedEvent) {
-      throw Error("retrievedEvent is undefined");
-    }
-
-    const eventType = retrievedEvent.type;
+    const eventType = receivedEvent.type;
 
     switch (eventType) {
       case "checkout.session.completed":
         // Payment is successful and the subscription is created.
         // You should provision the subscription and save the customer ID to your database.
         req.log.info(
-          "[api/stripe-webhook][checkout.session.completed] retrievedEvent: ",
-          retrievedEvent
+          "[api/stripe-webhook][checkout.session.completed] receivedEvent: ",
+          receivedEvent
         );
-        const checkoutSession = retrievedEvent.data
+        const checkoutSession = receivedEvent.data
           .object as Stripe.Checkout.Session;
         const successUrl = checkoutSession.success_url;
 
