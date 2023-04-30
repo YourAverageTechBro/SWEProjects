@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { prisma } from "~/server/db";
 import { Resend } from "resend";
 import ProjectPurchaseEmail from "../../../../emails/ProjectPurchaseEmail";
+import { buffer } from "micro";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
@@ -19,11 +20,11 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
       throw new Error("Missing Stripe Webhook Signing Secret");
     }
     const signature = req.headers["Stripe-Signature"] as string;
-    const body = JSON.parse(req.body as string) as Buffer;
+    const buf = await buffer(req);
     let receivedEvent;
     try {
       receivedEvent = await stripe.webhooks.constructEventAsync(
-        body,
+        buf.toString(),
         signature,
         stripeWebhookSigningSecret,
         undefined,
