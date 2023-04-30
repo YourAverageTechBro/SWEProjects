@@ -9,12 +9,20 @@ import { buffer } from "micro";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
 });
-const stripeWebhookSigningSecret = process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
+
+// Disable next.js body parsing (stripe needs the raw body to validate the event)
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
   req.log.info("[api/stripe-webhook] Starting endpoint");
   try {
+    const stripeWebhookSigningSecret =
+      process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
     if (!stripeWebhookSigningSecret) {
       throw new Error("Missing Stripe Webhook Signing Secret");
     }
