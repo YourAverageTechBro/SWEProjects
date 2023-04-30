@@ -1,12 +1,9 @@
 import { useRouter } from "next/router";
 import PersonCoding from "~/components/Images/PersonCoding";
-import { api } from "~/utils/api";
-import { toast } from "react-hot-toast";
-import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { useEffect } from "react";
-import { wait } from "~/utils/utils";
 import mixpanel from "mixpanel-browser";
 import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 
 mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
   debug: process.env.NODE_ENV !== "production",
@@ -15,13 +12,12 @@ mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
 export default function SuccessfulPurchase() {
   const router = useRouter();
   const { isSignedIn, user } = useUser();
-  const { projectId, userId } = router.query as {
+  const { projectId } = router.query as {
     projectId: string;
-    userId: string;
   };
 
   useEffect(() => {
-    if (isSignedIn && user) {
+    if (isSignedIn && user && projectId) {
       mixpanel.identify(user.id);
       mixpanel.people.set({
         $name: user.fullName,
@@ -35,33 +31,11 @@ export default function SuccessfulPurchase() {
     }
   }, [isSignedIn, projectId, user]);
 
-  const { mutate } = api.purchases.create.useMutation({
-    onSuccess: async (purchase) => {
-      if (purchase.projectsId) {
-        await wait(4000);
-        await router.push(
-          `/projects/${purchase.projectsId}?successfullyPurchased=true`
-        );
-      }
-    },
-    onError: () => {
-      toast.error(
-        "Woops, something went wrong on our end. Please refresh the page."
-      );
-    },
-  });
-
-  useEffect(() => {
-    if (projectId && userId) {
-      mutate({ projectsId: projectId, userId });
-    }
-  }, [projectId, mutate, userId]);
-
   return (
     <>
       <div
         className={
-          "flex flex-col items-center justify-center gap-4 text-center"
+          "flex flex-col items-center justify-center gap-4 text-center px-8"
         }
       >
         <style global jsx>{`
@@ -78,10 +52,17 @@ export default function SuccessfulPurchase() {
           Congrats on purchasing the project!{" "}
         </p>
         <p className={"text-md font-bold sm:text-2xl"}>
-          {"You will be redirected to the project tutorial in a few seconds."}
+          {`Once we finish processing your payment, 
+          you will  receive an email confirmation 
+          with a direct link to the project.`}
         </p>
-        <LoadingSpinner />
         <PersonCoding />
+        <Link
+          href="/projects"
+          className="rounded-full bg-blue-600 px-3.5 py-2.5 text-2xl font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+        >
+          View All Of Your Projects
+        </Link>
       </div>
     </>
   );
