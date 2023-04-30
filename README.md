@@ -18,7 +18,7 @@ We want to change that by creating high quality tutorials for technically impres
 
 
 ## Get Started
-To run SWE Projects locally, just run the following commands install the dependencies and run the app locally.
+To run SWE Projects locally, just run the following commands to install the dependencies and run the app locally.
 
 ```
 npm install
