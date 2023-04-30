@@ -10,7 +10,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
 });
 const stripeWebhookSigningSecret = process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
-const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
@@ -26,9 +25,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse) {
       receivedEvent = await stripe.webhooks.constructEventAsync(
         buf.toString(),
         signature,
-        stripeWebhookSigningSecret,
-        undefined,
-        cryptoProvider
+        stripeWebhookSigningSecret
       );
     } catch (err: unknown) {
       if (err instanceof Error) {
