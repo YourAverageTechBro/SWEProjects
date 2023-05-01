@@ -7,7 +7,6 @@ import {
   type Instructions,
   type Projects,
   type ProjectVariant,
-  type Purchases,
   type SuccessMedia,
 } from "@prisma/client";
 import React, { useState } from "react";
@@ -15,13 +14,13 @@ import { useAuth } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type GetServerSideProps } from "next";
-import { getAuth } from "@clerk/nextjs/server";
 import { log } from "next-axiom";
+import { api } from "~/utils/api";
+import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
   project:
     | (Projects & {
-        purchases: Purchases[];
         projectVariants: (ProjectVariant & {
           instructions: (Instructions & {
             successMedia: SuccessMedia[];
@@ -41,10 +40,26 @@ export default function EditProject({ project }: Props) {
     projectId: string;
     successfullyPurchased?: string;
   };
+
+  const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
+    api.projects.getUsersPurchasedProjects.useQuery(
+      {
+        userId,
+      },
+      {
+        refetchOnWindowFocus: false,
+      }
+    );
+
   if (!projectId) return <div>404</div>;
   if (!project) return <div>404</div>;
+  if (isFetchingPurchasedProjects) return <LoadingSpinner />;
   const isAuthor = userId === project.authorId;
-  if (project?.purchases?.length === 0 && !isAuthor) return <div> 404 </div>;
+
+  const userHasPurchasedProject = purchasedProjects?.some(
+    (purchasedProject) => purchasedProject.id === project?.id
+  );
+  if (!userHasPurchasedProject && !isAuthor) return <div> 404 </div>;
 
   const projectVariant = project?.projectVariants?.[0];
 
@@ -111,13 +126,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
   log.info("[projects/[projectId] Starting getServerSideProps");
-  const { userId } = getAuth(context.req);
-  if (!userId) {
-    log.error("[projects/[projectId] No userId found in getServerSideProps");
-    return {
-      props: { project: null },
-    };
-  }
   const ssg = generateSSGHelper();
   const projectId = context.params?.projectId as string;
   if (!projectId) {
@@ -128,7 +136,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     projectId,
     frontendVariant: FrontendVariant.NextJS,
     backendVariant: BackendVariant.Supabase,
-    userId,
   });
 
   if (!project) {
