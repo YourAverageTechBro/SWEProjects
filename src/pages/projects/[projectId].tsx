@@ -16,6 +16,7 @@ import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type GetServerSideProps } from "next";
 import { getAuth } from "@clerk/nextjs/server";
+import { log } from "next-axiom";
 
 type Props = {
   project:
@@ -109,21 +110,31 @@ export default function EditProject({ project }: Props) {
 export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
+  log.info("[projects/[projectId] Starting getServerSideProps");
   const { userId } = getAuth(context.req);
   if (!userId) {
+    log.error("[projects/[projectId] No userId found in getServerSideProps");
     return {
       props: { project: null },
     };
   }
   const ssg = generateSSGHelper();
   const projectId = context.params?.projectId as string;
-  if (!projectId) return { props: { project: null } };
+  if (!projectId) {
+    log.error("[projects/[projectId] No projectId found in getServerSideProps");
+    return { props: { project: null } };
+  }
   const project = await ssg.projects.getById.fetch({
     projectId,
     frontendVariant: FrontendVariant.NextJS,
     backendVariant: BackendVariant.Supabase,
     userId,
   });
+
+  if (!project) {
+    log.error("[projects/[projectId] No project found in getServerSideProps");
+    return { props: { project: null } };
+  }
   return {
     props: {
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?

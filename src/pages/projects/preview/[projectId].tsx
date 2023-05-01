@@ -8,6 +8,7 @@ import { type GetStaticProps, type NextPage } from "next";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type Projects, type Purchases } from "@prisma/client";
 import { api } from "~/utils/api";
+import { log } from "next-axiom";
 
 mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
   debug: process.env.NODE_ENV !== "production",
@@ -255,14 +256,22 @@ const PreviewPage: NextPage<{
 };
 
 export const getStaticProps: GetStaticProps = async (context) => {
+  log.info("[projects/preview/[projectId] Starting getStaticProps");
   const ssg = generateSSGHelper();
 
   const projectId = context.params?.projectId;
 
-  if (typeof projectId !== "string") throw new Error("no projectId");
+  if (typeof projectId !== "string") {
+    log.error("[projects/preview/[projectId] No projectId");
+    throw new Error("no projectId");
+  }
 
   const project = await ssg.projects.getPreviewById.fetch({ projectId });
-  const priceId = project?.stripePriceId;
+  if (!project) {
+    log.error("[projects/preview/[projectId] No project");
+    throw new Error("no project");
+  }
+  const priceId = project.stripePriceId;
   let stripePrice;
   if (priceId) {
     stripePrice = await ssg.stripe.getPrices.fetch({ priceId });
