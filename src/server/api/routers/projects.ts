@@ -72,7 +72,6 @@ export const projectsRouter = createTRPCRouter({
         projectId: z.string().optional(),
         frontendVariant: z.nativeEnum(FrontendVariant),
         backendVariant: z.nativeEnum(BackendVariant),
-        userId: z.string().nullable().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -82,7 +81,6 @@ export const projectsRouter = createTRPCRouter({
         input: JSON.stringify(input),
       });
       if (!input.projectId) return null;
-      if (!input.userId) return null;
       const filter: ProjectsFindUniqueArgs = {
         where: {
           id: input.projectId,
@@ -100,11 +98,6 @@ export const projectsRouter = createTRPCRouter({
                   successMedia: true,
                 },
               },
-            },
-          },
-          purchases: {
-            where: {
-              userId: input.userId,
             },
           },
         },
@@ -136,7 +129,6 @@ export const projectsRouter = createTRPCRouter({
               };
             };
           };
-          purchases: true;
         };
       }>;
     }),
