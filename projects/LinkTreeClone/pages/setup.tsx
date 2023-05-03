@@ -1,7 +1,7 @@
 import { Database } from "@/types/supabase";
-import LinksPreviewComponent from "@/Components/Setup/LinksPreviewComponent";
-import LinksSetupComponent from "@/Components/Setup/LinksSetupComponent";
-import Header from "@/Components/common/Header";
+import LinksPreviewComponent from "../Components/Setup/LinksPreviewComponent";
+import LinksSetupComponent from "../Components/Setup/LinksSetupComponent";
+import Header from "../Components/common/Header";
 import { GetServerSideProps } from "next";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 

@@ -1,12 +1,12 @@
-import BackgroundGradient from "@/Components/common/BackgroundGradient";
+import BackgroundGradient from "../Components/common/BackgroundGradient";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div>
       <BackgroundGradient />
-      <main className="h-screen flex flex-col items-center gap-8">
-        <h1 className="text-4xl font-bold text-center text-black mt-32">
+      <main className="flex h-screen flex-col items-center gap-8">
+        <h1 className="mt-32 text-center text-4xl font-bold text-black">
           Create your link in bio
         </h1>
         <Link

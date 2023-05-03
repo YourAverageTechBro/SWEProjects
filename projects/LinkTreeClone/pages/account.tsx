@@ -1,5 +1,5 @@
-import Header from "@/Components/common/Header";
-import UsernameEditor from "@/Components/Account/UsernameEditor";
+import Header from "../Components/common/Header";
+import UsernameEditor from "../Components/Account/UsernameEditor";
 import { GetServerSideProps } from "next";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
