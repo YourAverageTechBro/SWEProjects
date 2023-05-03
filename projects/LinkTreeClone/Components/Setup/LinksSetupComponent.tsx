@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useUser } from "@supabase/auth-helpers-react";
-import { Database } from "@/types/supabase";
+import { Database } from "../../types/supabase";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 
@@ -75,7 +75,7 @@ export default function LinksSetupComponent({ links }: Props) {
 
   return (
     <div className={"w-1/2"}>
-      <div className={"m-8 p-8 bg-white rounded-lg border w-full"}>
+      <div className={"m-8 w-full rounded-lg border bg-white p-8"}>
         <p className={"text-4xl"}> Enter URL and Title</p>
         <input
           className="mt-8 w-full rounded-md border py-4 text-gray-900 shadow-sm"
@@ -100,7 +100,7 @@ export default function LinksSetupComponent({ links }: Props) {
         <div
           key={link.id}
           className={
-            "w-full m-8 p-8 bg-white rounded-lg border flex justify-between"
+            "m-8 flex w-full justify-between rounded-lg border bg-white p-8"
           }
         >
           <div>

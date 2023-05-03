@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/types/supabase";
+import { Database } from "../types/supabase";
 import Link from "next/link";
 
 type Props = {
@@ -9,12 +9,12 @@ type Props = {
 };
 export default function CreatorPage({ links, username }: Props) {
   return (
-    <div className={"min-h-screen flex flex-col items-center mt-36"}>
+    <div className={"mt-36 flex min-h-screen flex-col items-center"}>
       <h1 className={"text-2xl font-bold"}>Links for {username}</h1>
-      <div className="flex flex-col justify-center m-8 overflow-scroll h-full w-96 gap-8">
+      <div className="m-8 flex h-full w-96 flex-col justify-center gap-8 overflow-scroll">
         {links.map((link) => (
           <Link
-            className={"w-full p-8 bg-white rounded-lg border text-center"}
+            className={"w-full rounded-lg border bg-white p-8 text-center"}
             key={link.id}
             href={link.url}
           >

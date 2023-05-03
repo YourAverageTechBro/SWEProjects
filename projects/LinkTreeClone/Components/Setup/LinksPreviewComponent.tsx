@@ -1,6 +1,6 @@
 import { ClipboardIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import { Database } from "@/types/supabase";
+import { Database } from "../../types/supabase";
 import Link from "next/link";
 
 type Props = {
@@ -17,7 +17,7 @@ export default function LinksPreviewComponent({ links, username }: Props) {
     }, 3000);
   };
   return (
-    <div className="w-1/2 flex flex-col items-center">
+    <div className="flex w-1/2 flex-col items-center">
       <div
         className="flex items-center hover:cursor-pointer"
         onClick={async (event) => {
@@ -28,12 +28,12 @@ export default function LinksPreviewComponent({ links, username }: Props) {
           showSuccessToast();
         }}
       >
-        <p className="text-lg font-bold mb-4">{`${process.env.NEXT_PUBLIC_BASE_URL}/${username}`}</p>
-        <button className="ml-4 mb-4 px-4 py-2 border rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex">
+        <p className="mb-4 text-lg font-bold">{`${process.env.NEXT_PUBLIC_BASE_URL}/${username}`}</p>
+        <button className="mb-4 ml-4 flex rounded-md border bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
           <ClipboardIcon className="h-6 w-6" /> copy{" "}
         </button>
         <div
-          className={`ease-in-out transition-all absolute right-8 top-1 mt-16 px-4 py-2 border rounded-md shadow-sm text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center ${
+          className={`absolute right-8 top-1 mt-16 flex items-center rounded-md border bg-green-500 px-4 py-2 text-white shadow-sm transition-all ease-in-out hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
             shouldShowSuccessToast ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setShouldShowSuccessToast(false)}
@@ -43,13 +43,13 @@ export default function LinksPreviewComponent({ links, username }: Props) {
         </div>
       </div>
       <div
-        className="text-center border-black border-8 radius-1/2 rounded-3xl"
+        className="radius-1/2 rounded-3xl border-8 border-black text-center"
         style={{ height: "844px", width: "390px" }}
       >
-        <div className="flex flex-col justify-center m-8 overflow-scroll h-full">
+        <div className="m-8 flex h-full flex-col justify-center overflow-scroll">
           {links.map((link) => (
             <Link
-              className={"w-full p-8 bg-white rounded-lg border"}
+              className={"w-full rounded-lg border bg-white p-8"}
               key={link.id}
               href={link.url}
             >
