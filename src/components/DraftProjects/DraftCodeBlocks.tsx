@@ -7,7 +7,7 @@ import {
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { type editor } from "monaco-editor";
-import { useCallback, useEffect, useState } from "react";
+import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { type CodeBlocks } from "@prisma/client";
@@ -32,6 +32,9 @@ export default function DraftCodeBlocks({
   const [focusedCodeBlock, setFocusedCodeBlock] = useState(
     codeBlocks ? codeBlocks[0] : undefined
   );
+  const [currentlyEditingCodeBlock, setCurrentlyEditingCodeBlock] = useState<
+    CodeBlocks | undefined
+  >();
   const [isInitialized, setIsInitialized] = useState(false);
 
   const ctx = api.useContext();
@@ -70,6 +73,7 @@ export default function DraftCodeBlocks({
           // Show successfully saved state
           toast.success("Saved!");
         }
+        setCurrentlyEditingCodeBlock(undefined);
       },
       onError: (e) => {
         const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -159,6 +163,27 @@ export default function DraftCodeBlocks({
     });
   };
 
+  function handleEnterKeyPress<T = Element>(f: () => void) {
+    return handleKeyPress<T>(f, "Enter");
+  }
+
+  function handleKeyPress<T = Element>(f: () => void, key: string) {
+    return (e: KeyboardEvent<T>) => {
+      if (e.key === key) {
+        f();
+      }
+    };
+  }
+
+  const renameCodeBlock = () => {
+    if (!currentlyEditingCodeBlock) return;
+    updateCodeBlock({
+      codeBlockId: currentlyEditingCodeBlock.id,
+      code: currentlyEditingCodeBlock.code,
+      fileName: currentlyEditingCodeBlock.fileName,
+    });
+  };
+
   return (
     <div className={"flex w-2/3 flex-col"}>
       <div className={"overflow-x-scroll border-b "}>
@@ -169,20 +194,42 @@ export default function DraftCodeBlocks({
                 ${focusedCodeBlock === codeBlock ? "bg-gray-200" : ""}
                 `}
               key={index}
-              onClick={() => setFocusedCodeBlock(codeBlock)}
+              onClick={() => {
+                if (focusedCodeBlock === codeBlock) {
+                  setCurrentlyEditingCodeBlock(codeBlock);
+                } else {
+                  setFocusedCodeBlock(codeBlock);
+                }
+              }}
             >
-              <div className={"flex items-center gap-2"}>
-                {codeBlock.fileName}
-                <div
-                  className={"hover:cursor-pointer hover:bg-gray-200"}
-                  onClick={(e) => {
-                    deleteCodeBlock({ codeBlockId: codeBlock.id });
-                    e.stopPropagation();
-                  }}
-                >
-                  <XMarkIcon className={"h-4 w-4 text-red-500"} />
+              {currentlyEditingCodeBlock ? (
+                <div className={"flex items-center gap-2"}>
+                  <input
+                    className={"rounded border p-1"}
+                    value={currentlyEditingCodeBlock.fileName}
+                    onChange={(e) =>
+                      setCurrentlyEditingCodeBlock({
+                        ...currentlyEditingCodeBlock,
+                        fileName: e.target.value,
+                      })
+                    }
+                    onKeyDown={handleEnterKeyPress(renameCodeBlock)}
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className={"flex items-center gap-2"}>
+                  {codeBlock.fileName}
+                  <button
+                    className={"hover:bg-gray-200"}
+                    onClick={(e) => {
+                      deleteCodeBlock({ codeBlockId: codeBlock.id });
+                      e.stopPropagation();
+                    }}
+                  >
+                    <XMarkIcon className={"h-4 w-4 text-red-500"} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
 
