@@ -66,9 +66,20 @@ const isAxiomAPIRequest = (
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
   const session = getAuth(req);
-  log.info("createTRPCContext", {
-    session,
-  });
+  log.info(
+    `createTRPCContext 
+  ${JSON.stringify({
+    session: JSON.stringify(session),
+    userId: session.userId,
+    user: session.user?.id,
+  })}
+  `,
+    {
+      session: JSON.stringify(session),
+      userId: session.userId,
+      user: session.user?.id,
+    }
+  );
   const userId = session.userId;
 
   if (isAxiomAPIRequest(req)) {
