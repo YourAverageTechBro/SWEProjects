@@ -6,5 +6,5 @@ export default withClerkMiddleware(() => {
 });
 
 export const config = {
-  matcher: ["/(.?trpc.?|(?!static|...|_next|favicon.ico).)"],
+  matcher: "/((?!_next/image|_next/static|favicon.ico).*)",
 };
