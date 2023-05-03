@@ -28,7 +28,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { getAuth } from "@clerk/nextjs/server";
 import { ZodError } from "zod";
-import { type AxiomAPIRequest, log } from "next-axiom";
+import { type AxiomAPIRequest } from "next-axiom";
 import { type NextApiRequest } from "next";
 
 type CreateContextOptions = Record<string, never>;
@@ -44,7 +44,6 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 export const createInnerTRPCContext = (_opts: CreateContextOptions) => {
-  log.info("createInnerTRPCContext");
   return {
     prisma,
     userId: null,
@@ -66,20 +65,6 @@ const isAxiomAPIRequest = (
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
   const session = getAuth(req);
-  log.info(
-    `createTRPCContext 
-  ${JSON.stringify({
-    session: JSON.stringify(session),
-    userId: session.userId,
-    user: session.user?.id,
-  })}
-  `,
-    {
-      session: JSON.stringify(session),
-      userId: session.userId,
-      user: session.user?.id,
-    }
-  );
   const userId = session.userId;
 
   if (isAxiomAPIRequest(req)) {
@@ -135,9 +120,6 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
-  log.info("enforceUserIsAuthed", {
-    userId: ctx.userId,
-  });
   if (!ctx.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
