@@ -202,7 +202,7 @@ export default function DraftCodeBlocks({
                 }
               }}
             >
-              {currentlyEditingCodeBlock ? (
+              {currentlyEditingCodeBlock?.id === codeBlock.id ? (
                 <div className={"flex items-center gap-2"}>
                   <input
                     className={"rounded border p-1"}
