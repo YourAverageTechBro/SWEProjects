@@ -41,7 +41,7 @@ export default function InstructionLeftSidebar({
           </div>
         ))}
       </div>
-      <div className={"h-full overflow-scroll"}>
+      <div className={"h-full overflow-scroll pb-8"}>
         {focusedSideBarContent === SideBarContent.INSTRUCTIONS && (
           <DraftInstructionalTextComponent
             initialValue={explanation}

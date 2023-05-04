@@ -186,52 +186,54 @@ export default function DraftCodeBlocks({
 
   return (
     <div className={"flex w-2/3 flex-col"}>
-      <div className={"overflow-x-scroll border-b "}>
+      <div className={"overflow-hidden border-b"}>
         <div className={"flex items-center"}>
-          {codeBlocks?.map((codeBlock, index) => (
-            <div
-              className={`w-auto border px-4 py-2 hover:cursor-pointer hover:bg-gray-200
+          <div className={"flex overflow-x-scroll"}>
+            {codeBlocks?.map((codeBlock, index) => (
+              <div
+                className={`w-auto border px-4 py-2 hover:cursor-pointer hover:bg-gray-200
                 ${focusedCodeBlock === codeBlock ? "bg-gray-200" : ""}
                 `}
-              key={index}
-              onClick={() => {
-                if (focusedCodeBlock === codeBlock) {
-                  setCurrentlyEditingCodeBlock(codeBlock);
-                } else {
-                  setFocusedCodeBlock(codeBlock);
-                }
-              }}
-            >
-              {currentlyEditingCodeBlock?.id === codeBlock.id ? (
-                <div className={"flex items-center gap-2"}>
-                  <input
-                    className={"rounded border p-1"}
-                    value={currentlyEditingCodeBlock.fileName}
-                    onChange={(e) =>
-                      setCurrentlyEditingCodeBlock({
-                        ...currentlyEditingCodeBlock,
-                        fileName: e.target.value,
-                      })
-                    }
-                    onKeyDown={handleEnterKeyPress(renameCodeBlock)}
-                  />
-                </div>
-              ) : (
-                <div className={"flex items-center gap-2"}>
-                  {codeBlock.fileName}
-                  <button
-                    className={"hover:bg-gray-200"}
-                    onClick={(e) => {
-                      deleteCodeBlock({ codeBlockId: codeBlock.id });
-                      e.stopPropagation();
-                    }}
-                  >
-                    <XMarkIcon className={"h-4 w-4 text-red-500"} />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                key={index}
+                onClick={() => {
+                  if (focusedCodeBlock === codeBlock) {
+                    setCurrentlyEditingCodeBlock(codeBlock);
+                  } else {
+                    setFocusedCodeBlock(codeBlock);
+                  }
+                }}
+              >
+                {currentlyEditingCodeBlock?.id === codeBlock.id ? (
+                  <div className={"flex items-center gap-2"}>
+                    <input
+                      className={"rounded border p-1"}
+                      value={currentlyEditingCodeBlock.fileName}
+                      onChange={(e) =>
+                        setCurrentlyEditingCodeBlock({
+                          ...currentlyEditingCodeBlock,
+                          fileName: e.target.value,
+                        })
+                      }
+                      onKeyDown={handleEnterKeyPress(renameCodeBlock)}
+                    />
+                  </div>
+                ) : (
+                  <div className={"flex items-center gap-2"}>
+                    {codeBlock.fileName}
+                    <button
+                      className={"hover:bg-gray-200"}
+                      onClick={(e) => {
+                        deleteCodeBlock({ codeBlockId: codeBlock.id });
+                        e.stopPropagation();
+                      }}
+                    >
+                      <XMarkIcon className={"h-4 w-4 text-red-500"} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           {isAuthor && (
             <div
