@@ -276,7 +276,10 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
 export const getStaticPaths = () => {
   return {
-    paths: ["/projects/preview/clgk8x5w1000cvrvb86b13ut7"],
+    paths: [
+      "/projects/preview/clgk8x5w1000cvrvb86b13ut7",
+      "/projects/preview/clh7qgfw30000vr1re1505ime",
+    ],
     fallback: false,
   };
 };
