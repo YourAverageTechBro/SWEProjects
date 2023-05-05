@@ -41,7 +41,8 @@ const ProjectPurchaseEmail = ({ projectName, projectUrl }: Props) => {
               >
                 {" the Discord "}
               </Link>
-              and let us know! We will help you out as soon as we can.
+              or send an email to dohyun@youraveragetechbro.com with details
+              about your issue. We will help you out as soon as we can.
             </p>
           </div>
         </div>
