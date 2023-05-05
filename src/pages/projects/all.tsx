@@ -1,19 +1,21 @@
 import { type GetStaticProps } from "next";
 import { log } from "next-axiom";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
-import { api } from "~/utils/api";
 import Header from "~/components/Common/Header";
 import React, { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import mixpanel from "mixpanel-browser";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { type Projects } from "@prisma/client";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
-export default function AllProjects() {
+type Props = {
+  data: Projects[];
+};
+export default function AllProjects({ data }: Props) {
   const router = useRouter();
-  const { data } = api.projects.getAllPreviews.useQuery();
   const { isSignedIn, user } = useUser();
 
   useEffect(() => {
@@ -178,15 +180,10 @@ export const getStaticProps: GetStaticProps = async () => {
     throw new Error("no projects");
   }
 
-  await Promise.all(
-    projects.map(async (project) => {
-      await ssg.stripe.getPrices.prefetch({ priceId: project.stripePriceId });
-    })
-  );
-
   return {
     props: {
       trpcState: ssg.dehydrate(),
+      data: projects.map((project) => ({ ...project, createdAt: null })),
     },
   };
 };
