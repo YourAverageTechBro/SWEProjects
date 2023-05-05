@@ -96,7 +96,7 @@ export default function AllProjects() {
         <div className={"flex flex-wrap gap-4 sm:flex-nowrap"}>
           {data?.map((project, index) => (
             <div
-              className={"w-full rounded-lg border p-8 shadow-lg  sm:w-1/2"}
+              className={"w-full rounded-lg border p-8 shadow-lg"}
               key={index}
             >
               <p className={"mb-8 text-center text-4xl font-bold"}>
@@ -125,25 +125,24 @@ export default function AllProjects() {
               >
                 Learn more
               </button>
-              <button className="mt-4 w-full rounded-md bg-indigo-50  py-6 text-2xl font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100">
-                <Link
-                  onClick={() => {
-                    if (user) {
-                      mixpanel.track("Clicked View Demo Button", {
-                        distinct_id: user.id,
-                        project_id: project.id,
-                        time: new Date(),
-                      });
-                    }
-                  }}
-                  href={project.videoDemoUrl}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  onMouseOver={() => onMouseOverViewDemoButton(project.id)}
-                >
-                  View demo
-                </Link>
-              </button>
+              <Link
+                className="mt-4 block w-full rounded-md bg-indigo-50 py-6  text-center text-2xl font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100"
+                onClick={() => {
+                  if (user) {
+                    mixpanel.track("Clicked View Demo Button", {
+                      distinct_id: user.id,
+                      project_id: project.id,
+                      time: new Date(),
+                    });
+                  }
+                }}
+                href={project.videoDemoUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+                onMouseOver={() => onMouseOverViewDemoButton(project.id)}
+              >
+                View demo
+              </Link>
               <div className={"mt-4"}>
                 <p className={"mb-4 text-2xl font-bold"}> Prerequisites: </p>
                 <div className={"flex flex-wrap items-center gap-4"}>

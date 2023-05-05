@@ -51,7 +51,7 @@ export default function Projects() {
             <p className={"text-4xl font-bold"}> No projects found </p>
             <p className={"text-2xl font-bold"}>
               {" "}
-              View all the available projcts{" "}
+              View all the available projcets{" "}
               <Link
                 href={"/projects/preview/clgk8x5w1000cvrvb86b13ut7"}
                 className={"text-indigo-500 underline"}
