@@ -65,7 +65,7 @@ export default function Header() {
             My projects{" "}
           </Link>
           <Link
-            href="/projects/preview/clgk8x5w1000cvrvb86b13ut7"
+            href="/projects/all"
             aria-label="View all projects"
             className={`rounded-lg p-4 font-semibold hover:bg-indigo-200`}
             onClick={() => {

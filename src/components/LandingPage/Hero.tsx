@@ -25,7 +25,7 @@ export function Hero() {
         {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
         {/*@ts-ignore*/}
         <Link
-          href="/projects/preview/clgk8x5w1000cvrvb86b13ut7"
+          href="/projects/all"
           className="rounded-full bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         >
           View all projects

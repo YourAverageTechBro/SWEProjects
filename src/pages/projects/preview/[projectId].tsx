@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
@@ -24,7 +24,6 @@ const PreviewPage: NextPage<{
   const [redirectUrl, setRedirectUrl] = useState("");
   const { isSignedIn, user } = useUser();
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
-  const isMounted = useRef(false);
   const { canceledPayment } = router.query as { canceledPayment: string };
   const projectId = project?.id;
 
@@ -55,7 +54,6 @@ const PreviewPage: NextPage<{
 
   useEffect(() => {
     if (isSignedIn && user) {
-      isMounted.current = true;
       mixpanel.identify(user.id);
       mixpanel.people.set({
         $name: user.fullName,
@@ -68,16 +66,6 @@ const PreviewPage: NextPage<{
         price: stripePrice,
       });
     }
-
-    return () => {
-      isMounted.current = false;
-      mixpanel.track("leaving purchase preview page", {
-        distinct_id: user?.id,
-        project_id: projectId,
-        time: new Date(),
-        price: stripePrice,
-      });
-    };
   }, [projectId, isSignedIn, user, stripePrice]);
   if (!project) return null;
 
