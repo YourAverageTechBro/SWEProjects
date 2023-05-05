@@ -16,6 +16,7 @@ model Projects {
   thumbnailUrl    String           @default("")
   title           String           @default("") @db.LongText
   description     String           @default("") @db.LongText
+  videoDemoUrl    String           @default("")
   stripePriceId   String           @default("")
   purchases       Purchases[]
   preRequisites   String?          @default("") @db.LongText

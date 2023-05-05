@@ -23,6 +23,30 @@ export const projectsRouter = createTRPCRouter({
     });
     return result;
   }),
+  getAllPreviews: publicProcedure.query(({ ctx }) => {
+    ctx.log?.info("[projects] Starting endpoint", {
+      userId: ctx.userId,
+      function: "getAllPreviews",
+    });
+    const result = ctx.prisma.projects.findMany({
+      select: {
+        id: true,
+        title: true,
+        thumbnailUrl: true,
+        preRequisites: true,
+        videoDemoUrl: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    ctx.log?.info("[projects] Completed endpoint", {
+      userId: ctx.userId,
+      function: "getAllPreviews",
+      result: JSON.stringify(result),
+    });
+    return result;
+  }),
   getPreviewById: publicProcedure
     .input(
       z.object({
