@@ -10,7 +10,7 @@ import { type editor } from "monaco-editor";
 import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { type CodeBlocks } from "@prisma/client";
+import { type CodeBlocks, type Instructions } from "@prisma/client";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { debounce } from "throttle-debounce";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -18,14 +18,16 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 type Props = {
   codeBlocks?: CodeBlocks[];
   instructionsId: string;
-  previousInstructionCodeBlocks?: CodeBlocks[];
+  instructions: (Instructions & {
+    codeBlock: CodeBlocks[];
+  })[];
   viewDiff: boolean;
   isAuthor: boolean;
 };
 export default function DraftCodeBlocks({
   codeBlocks,
   instructionsId,
-  previousInstructionCodeBlocks,
+  instructions,
   viewDiff,
   isAuthor,
 }: Props) {
@@ -184,6 +186,22 @@ export default function DraftCodeBlocks({
     });
   };
 
+  const findMostRecentCodeBlock = () => {
+    let mostRecentCodeBlock: CodeBlocks | undefined;
+
+    instructions.forEach(
+      (instruction: Instructions & { codeBlock: CodeBlocks[] }) => {
+        instruction.codeBlock.forEach((codeBlock) => {
+          if (codeBlock.fileName === focusedCodeBlock?.fileName) {
+            mostRecentCodeBlock = codeBlock;
+          }
+        });
+      }
+    );
+
+    return mostRecentCodeBlock?.code;
+  };
+
   return (
     <div className={"flex w-2/3 flex-col"}>
       <div className={"overflow-hidden border-b"}>
@@ -251,12 +269,7 @@ export default function DraftCodeBlocks({
             height={"100vh"}
             theme="vs-dark"
             language={"typescript"}
-            original={
-              previousInstructionCodeBlocks?.find(
-                (codeBlock: CodeBlocks) =>
-                  codeBlock.fileName === focusedCodeBlock?.fileName
-              )?.code
-            }
+            original={findMostRecentCodeBlock()}
             modified={focusedCodeBlock?.code}
             onMount={handleDiffEditorDidMount}
             options={{

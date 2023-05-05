@@ -1,8 +1,4 @@
-import {
-  type CodeBlocks,
-  type Instructions,
-  type SuccessMedia,
-} from "@prisma/client";
+import { type CodeBlocks, type Instructions } from "@prisma/client";
 import DraftCodeBlocks from "~/components/DraftProjects/DraftCodeBlocks";
 import { toast, Toaster } from "react-hot-toast";
 import { api } from "~/utils/api";
@@ -17,15 +13,11 @@ import { useState } from "react";
 import DraftLeftSidebar from "~/components/DraftProjects/InstructionLeftSidebar";
 
 type Props = {
-  previousInstruction:
-    | (Instructions & {
-        codeBlock: CodeBlocks[];
-        successMedia: SuccessMedia[];
-      })
-    | undefined;
+  instructions: (Instructions & {
+    codeBlock: CodeBlocks[];
+  })[];
   currentInstruction: Instructions & {
     codeBlock: CodeBlocks[];
-    successMedia: SuccessMedia[];
   };
   shouldShowTrashIcon: boolean;
   index: number;
@@ -33,7 +25,7 @@ type Props = {
   isAuthor: boolean;
 };
 export default function DraftPageComponent({
-  previousInstruction,
+  instructions,
   currentInstruction,
   shouldShowTrashIcon,
   index,
@@ -201,7 +193,7 @@ export default function DraftPageComponent({
           <DraftCodeBlocks
             codeBlocks={currentInstruction.codeBlock}
             instructionsId={currentInstruction.id}
-            previousInstructionCodeBlocks={previousInstruction?.codeBlock}
+            instructions={instructions}
             viewDiff={viewDiff || !isEditing}
             isAuthor={isAuthor}
           />

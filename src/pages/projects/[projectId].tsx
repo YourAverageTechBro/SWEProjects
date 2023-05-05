@@ -103,11 +103,7 @@ export default function EditProject({ project }: Props) {
               projectVariant.instructions.map((instruction, index) => (
                 <DraftPageComponent
                   key={instruction.id}
-                  previousInstruction={
-                    index > 0
-                      ? projectVariant.instructions[index - 1]
-                      : undefined
-                  }
+                  instructions={projectVariant.instructions.slice(0, index)}
                   currentInstruction={instruction}
                   shouldShowTrashIcon={projectVariant.instructions.length > 1}
                   index={index}
