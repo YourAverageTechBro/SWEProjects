@@ -1,13 +1,9 @@
 import { useRouter } from "next/router";
 import PersonCoding from "~/components/Images/PersonCoding";
 import { useEffect } from "react";
-import mixpanel from "mixpanel-browser";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-
-mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
-  debug: process.env.NODE_ENV !== "production",
-});
+import { usePostHog } from "posthog-js/react";
 
 export default function SuccessfulPurchase() {
   const router = useRouter();
@@ -15,15 +11,15 @@ export default function SuccessfulPurchase() {
   const { projectId } = router.query as {
     projectId: string;
   };
+  const postHog = usePostHog();
 
   useEffect(() => {
     if (isSignedIn && user && projectId) {
-      mixpanel.identify(user.id);
-      mixpanel.people.set({
-        $name: user.fullName,
-        $email: user.primaryEmailAddress?.emailAddress,
+      postHog?.identify(user?.id, {
+        name: user?.fullName,
+        email: user?.primaryEmailAddress?.emailAddress,
       });
-      mixpanel.track("Successfully Purchased Project", {
+      postHog?.capture("Successfully Purchased Project", {
         distinct_id: user.id,
         project_id: projectId,
         time: new Date(),
@@ -35,7 +31,7 @@ export default function SuccessfulPurchase() {
     <>
       <div
         className={
-          "flex flex-col items-center justify-center gap-4 text-center px-8"
+          "flex flex-col items-center justify-center gap-4 px-8 text-center"
         }
       >
         <style global jsx>{`
