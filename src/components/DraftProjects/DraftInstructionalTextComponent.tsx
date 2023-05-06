@@ -5,12 +5,6 @@ import { debounce } from "throttle-debounce";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import MdEditor from "~/components/Common/MdEditor/MdEditor";
-import dynamic from "next/dynamic";
-
-const MDEditor = dynamic(
-  () => import("@uiw/react-md-editor").then((mod) => mod.default),
-  { ssr: false }
-);
 
 type Props = {
   initialValue?: string;
@@ -74,7 +68,9 @@ export default function DraftInstructionalTextComponent({
         value={explanation}
         onChange={setExplanation}
         index={index}
-        readOnly={readOnly}
+        hideToolbar={readOnly}
+        preview={readOnly ? "preview" : "live"}
+        height={"100%"}
       />
     </div>
   );

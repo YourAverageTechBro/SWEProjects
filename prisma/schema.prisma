@@ -51,6 +51,26 @@ model Instructions {
   hasCodeBlocks    Boolean         @default(true)
   codeBlock        CodeBlocks[]
   successMedia     SuccessMedia[]
+  questions        Questions[]
+}
+
+model Questions {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  instructionsId String
+  instructions   Instructions? @relation(fields: [instructionsId], references: [id])
+  userId         String
+  question       String        @default("") @db.LongText
+  Comment        Comment[]
+}
+
+model Comment {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  questionsId String
+  questions   Questions? @relation(fields: [questionsId], references: [id])
+  userId      String
+  comment     String     @default("") @db.LongText
 }
 
 model CodeBlocks {
