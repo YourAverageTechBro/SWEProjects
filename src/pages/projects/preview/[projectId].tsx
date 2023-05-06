@@ -73,28 +73,6 @@ const PreviewPage: NextPage<{
     (purchasedProject) => purchasedProject.id === project?.id
   );
 
-  const onMouseOverPurchaseButton = () => {
-    if (isSignedIn && user) {
-      mixpanel.track("Hovered Over Purchase Button", {
-        distinct_id: user.id,
-        project_id: projectId,
-        time: new Date(),
-        price: stripePrice,
-      });
-    }
-  };
-
-  const onMouseOverSignUpButton = () => {
-    if (isSignedIn && user) {
-      mixpanel.track("Hovered Over Sign Up Button", {
-        distinct_id: user.id,
-        project_id: projectId,
-        time: new Date(),
-        price: stripePrice,
-      });
-    }
-  };
-
   return (
     <>
       <Header />
@@ -172,7 +150,6 @@ const PreviewPage: NextPage<{
                         price: stripePrice,
                       });
                     }}
-                    onMouseOver={onMouseOverPurchaseButton}
                   >
                     {isRedirectingToStripe && (
                       <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
@@ -187,7 +164,6 @@ const PreviewPage: NextPage<{
                     type="submit"
                     role="link"
                     className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    onMouseOver={onMouseOverSignUpButton}
                   >
                     Sign Up To Get The Coding Tutorial
                   </button>
