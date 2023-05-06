@@ -32,26 +32,6 @@ export default function AllProjects({ data }: Props) {
     }
   }, [user, isSignedIn]);
 
-  const onMouseOverLearnMoreButton = (projectId: string) => {
-    if (isSignedIn && user) {
-      mixpanel.track("Hovered Over Sign Up Button", {
-        distinct_id: user.id,
-        project_id: projectId,
-        time: new Date(),
-      });
-    }
-  };
-
-  const onMouseOverViewDemoButton = (projectId: string) => {
-    if (isSignedIn && user) {
-      mixpanel.track("Hovered Over View Demo Button", {
-        distinct_id: user.id,
-        project_id: projectId,
-        time: new Date(),
-      });
-    }
-  };
-
   const redirectToProjectsPreview = async (projectId: string) => {
     await router.push(`/projects/preview/${projectId}`);
   };
@@ -123,7 +103,6 @@ export default function AllProjects({ data }: Props) {
                     await redirectToProjectsPreview(project.id);
                   })();
                 }}
-                onMouseOver={() => onMouseOverLearnMoreButton(project.id)}
               >
                 Learn more
               </button>
@@ -141,7 +120,6 @@ export default function AllProjects({ data }: Props) {
                 href={project.videoDemoUrl}
                 rel="noopener noreferrer"
                 target="_blank"
-                onMouseOver={() => onMouseOverViewDemoButton(project.id)}
               >
                 View demo
               </Link>
