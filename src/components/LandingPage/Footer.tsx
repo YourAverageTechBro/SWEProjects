@@ -24,6 +24,20 @@ export function Footer() {
         <div className="flex flex-col items-center border-t border-slate-400/10 py-10 sm:flex-row-reverse sm:justify-between">
           <div className="flex gap-x-6">
             <Link
+              href="https://thomasdohyunkim.notion.site/Privacy-Policy-7de98d782dd244768fc9b9ef6abfb319"
+              className="group"
+              aria-label={"privacy policy"}
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="https://thomasdohyunkim.notion.site/SWE-Projects-Terms-Of-Service-b4ac629fd20f47a88291111091676c16"
+              className="group"
+              aria-label={"terms of service"}
+            >
+              Terms of Service
+            </Link>
+            <Link
               href="mailto:dohyun@youraveragebro.com"
               className="group"
               aria-label={"email customer support"}
