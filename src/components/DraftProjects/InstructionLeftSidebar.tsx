@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DraftInstructionalTextComponent from "~/components/DraftProjects/DraftInstructionalTextComponent";
-import QuestionsPlaceholder from "~/components/Images/Questions";
+import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
 
 enum SideBarContent {
   INSTRUCTIONS = "Instructions",
@@ -52,21 +52,8 @@ export default function InstructionLeftSidebar({
           />
         )}
         {focusedSideBarContent === SideBarContent.QUESTIONS && (
-          <div
-            className={
-              "flex w-full flex-col items-center justify-center gap-8 px-8 text-center"
-            }
-          >
-            {" "}
-            <QuestionsPlaceholder />{" "}
-            <p className={"text-4xl font-bold"}>
-              {" "}
-              We are launching the questions feature soon!{" "}
-            </p>
-            <p className={"text-2xl font-semibold text-gray-500"}>
-              Hold onto your questions for now and we will let you know when you
-              can add them here!
-            </p>
+          <div className={"h-full w-full"}>
+            <QuestionAndAnswerComponent instructionsId={instructionId} />
           </div>
         )}
       </div>

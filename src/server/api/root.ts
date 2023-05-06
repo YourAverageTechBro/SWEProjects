@@ -4,6 +4,7 @@ import { instructionsRouter } from "~/server/api/routers/instructions";
 import { codeBlocksRouter } from "~/server/api/routers/codeBlocks";
 import { purchasesRouter } from "~/server/api/routers/purchases";
 import { stripeRouter } from "~/server/api/routers/stripe";
+import { questionsRouter } from "~/server/api/routers/questions";
 
 /**
  * This is the primary router for your server.
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   instructions: instructionsRouter,
   codeBlocks: codeBlocksRouter,
   purchases: purchasesRouter,
+  questions: questionsRouter,
   stripe: stripeRouter,
 });
 

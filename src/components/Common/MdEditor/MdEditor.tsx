@@ -14,9 +14,18 @@ type Props = {
   value: string | undefined;
   onChange: Dispatch<SetStateAction<string | undefined>>;
   index: number;
-  readOnly: boolean;
+  hideToolbar: boolean;
+  preview: "edit" | "preview" | "live";
+  height: string;
 };
-const MdEditor = ({ value, onChange, index, readOnly }: Props) => {
+const MdEditor = ({
+  value,
+  onChange,
+  index,
+  preview,
+  hideToolbar,
+  height,
+}: Props) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
     process.env.NEXT_PUBLIC_SUPABASE_SERVICE_SECRET_KEY ?? ""
@@ -26,8 +35,8 @@ const MdEditor = ({ value, onChange, index, readOnly }: Props) => {
   return (
     <MDEditor
       value={value}
-      preview={readOnly ? "preview" : "live"}
-      hideToolbar={readOnly}
+      preview={preview}
+      hideToolbar={hideToolbar}
       onChange={(value) => {
         onChange(value);
       }}
@@ -41,7 +50,7 @@ const MdEditor = ({ value, onChange, index, readOnly }: Props) => {
       }}
       /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
       /* @ts-ignore */
-      height={"100%"}
+      height={height}
     />
   );
 };
