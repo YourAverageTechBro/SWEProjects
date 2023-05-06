@@ -14,9 +14,11 @@ import { useAuth } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type GetServerSideProps } from "next";
+import { PostHog } from "posthog-node";
 import { log } from "next-axiom";
 import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import { getAuth } from "@clerk/nextjs/server";
 
 type Props = {
   project:
@@ -30,9 +32,10 @@ type Props = {
       })
     | null
     | undefined;
+  isQAFeatureEnabled: boolean;
 };
 
-export default function EditProject({ project }: Props) {
+export default function EditProject({ isQAFeatureEnabled, project }: Props) {
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
@@ -109,6 +112,7 @@ export default function EditProject({ project }: Props) {
                   index={index}
                   isEditing={isEditing}
                   isAuthor={isAuthor}
+                  isQAFeatureEnabled={isQAFeatureEnabled}
                 />
               ))}
           </div>
@@ -126,7 +130,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   const projectId = context.params?.projectId as string;
   if (!projectId) {
     log.error("[projects/[projectId] No projectId found in getServerSideProps");
-    return { props: { project: null } };
+    return { props: { project: null, isQAFeatureEnabled: false } };
   }
   const project = await ssg.projects.getById.fetch({
     projectId,
@@ -136,13 +140,29 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   if (!project) {
     log.error("[projects/[projectId] No project found in getServerSideProps");
-    return { props: { project: null } };
+    return { props: { project: null, isQAFeatureEnabled: false } };
   }
+
+  const { userId } = getAuth(context.req);
+
+  let isQAFeatureEnabled = false;
+  if (userId) {
+    const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
+    });
+
+    isQAFeatureEnabled =
+      (await client.isFeatureEnabled("q-a-feature", userId)) ?? false;
+
+    await client.shutdownAsync();
+  }
+
   return {
     props: {
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       project: JSON.parse(JSON.stringify(project)),
+      isQAFeatureEnabled,
     },
   };
 };

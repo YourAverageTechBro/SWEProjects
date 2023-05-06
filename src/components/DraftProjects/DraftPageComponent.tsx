@@ -23,6 +23,7 @@ type Props = {
   index: number;
   isEditing: boolean;
   isAuthor: boolean;
+  isQAFeatureEnabled: boolean;
 };
 export default function DraftPageComponent({
   instructions,
@@ -31,6 +32,7 @@ export default function DraftPageComponent({
   index,
   isEditing,
   isAuthor,
+  isQAFeatureEnabled,
 }: Props) {
   const [viewDiff, setViewDiff] = useState(false);
   const { explanation } = currentInstruction;
@@ -187,6 +189,7 @@ export default function DraftPageComponent({
             index={index}
             isEditing={isEditing}
             isAuthor={isAuthor}
+            isQAFeatureEnabled={isQAFeatureEnabled}
           />
         </div>
         {currentInstruction.hasCodeBlocks && (

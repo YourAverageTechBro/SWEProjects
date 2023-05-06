@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DraftInstructionalTextComponent from "~/components/DraftProjects/DraftInstructionalTextComponent";
 import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
+import QuestionsPlaceholder from "~/components/Images/Questions";
 
 enum SideBarContent {
   INSTRUCTIONS = "Instructions",
@@ -13,6 +14,7 @@ type Props = {
   index: number;
   isEditing: boolean;
   isAuthor: boolean;
+  isQAFeatureEnabled: boolean;
 };
 export default function InstructionLeftSidebar({
   explanation,
@@ -20,6 +22,7 @@ export default function InstructionLeftSidebar({
   index,
   isEditing,
   isAuthor,
+  isQAFeatureEnabled,
 }: Props) {
   const [focusedSideBarContent, setFocusedSideBarContent] = useState(
     SideBarContent.INSTRUCTIONS
@@ -51,9 +54,27 @@ export default function InstructionLeftSidebar({
             isAuthor={isAuthor}
           />
         )}
-        {focusedSideBarContent === SideBarContent.QUESTIONS && (
+        {focusedSideBarContent === SideBarContent.QUESTIONS &&
+        isQAFeatureEnabled ? (
           <div className={"h-full w-full"}>
             <QuestionAndAnswerComponent instructionsId={instructionId} />
+          </div>
+        ) : (
+          <div
+            className={
+              "flex w-full flex-col items-center justify-center gap-8 px-8 text-center"
+            }
+          >
+            {" "}
+            <QuestionsPlaceholder />{" "}
+            <p className={"text-4xl font-bold"}>
+              {" "}
+              We are launching the questions feature soon!{" "}
+            </p>
+            <p className={"text-2xl font-semibold text-gray-500"}>
+              Hold onto your questions for now and we will let you know when you
+              can add them here!
+            </p>
           </div>
         )}
       </div>
