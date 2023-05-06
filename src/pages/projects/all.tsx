@@ -161,7 +161,9 @@ export const getStaticProps: GetStaticProps = async () => {
   return {
     props: {
       trpcState: ssg.dehydrate(),
-      data: projects.map((project) => ({ ...project, createdAt: null })),
+      data: projects
+        .reverse()
+        .map((project) => ({ ...project, createdAt: null })),
     },
   };
 };
