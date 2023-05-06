@@ -3,16 +3,12 @@ import { useRouter } from "next/router";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
-import mixpanel from "mixpanel-browser";
 import { type GetStaticProps, type NextPage } from "next";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type Projects, type Purchases } from "@prisma/client";
 import { api } from "~/utils/api";
 import { log } from "next-axiom";
-
-mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
-  debug: process.env.NODE_ENV !== "production",
-});
+import { usePostHog } from "posthog-js/react";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
@@ -26,6 +22,7 @@ const PreviewPage: NextPage<{
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const { canceledPayment } = router.query as { canceledPayment: string };
   const projectId = project?.id;
+  const postHog = usePostHog();
 
   const { data: purchasedProjects } =
     api.projects.getUsersPurchasedProjects.useQuery({
@@ -38,12 +35,11 @@ const PreviewPage: NextPage<{
 
   useEffect(() => {
     if (isSignedIn && user && canceledPayment === "true") {
-      mixpanel.identify(user.id);
-      mixpanel.people.set({
-        $name: user.fullName,
-        $email: user.primaryEmailAddress?.emailAddress,
+      postHog?.identify(user?.id, {
+        name: user?.fullName,
+        email: user?.primaryEmailAddress?.emailAddress,
       });
-      mixpanel.track("Canceled Payment", {
+      postHog?.capture("Canceled Payment", {
         distinct_id: user.id,
         project_id: projectId,
         time: new Date(),
@@ -54,12 +50,11 @@ const PreviewPage: NextPage<{
 
   useEffect(() => {
     if (isSignedIn && user) {
-      mixpanel.identify(user.id);
-      mixpanel.people.set({
-        $name: user.fullName,
-        $email: user.primaryEmailAddress?.emailAddress,
+      postHog?.identify(user?.id, {
+        name: user?.fullName,
+        email: user?.primaryEmailAddress?.emailAddress,
       });
-      mixpanel.track("Visit Project Preview", {
+      postHog?.capture("Visit Project Preview", {
         distinct_id: user.id,
         project_id: projectId,
         time: new Date(),
@@ -144,7 +139,7 @@ const PreviewPage: NextPage<{
                     className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
                     onClick={() => {
                       setIsRedirectingToStripe(true);
-                      mixpanel.track("Clicked Buy Now", {
+                      postHog?.capture("Clicked Buy Now", {
                         distinct_id: user.id,
                         project_id: projectId,
                         price: stripePrice,

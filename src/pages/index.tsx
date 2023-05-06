@@ -7,25 +7,21 @@ import { Header } from "~/components/LandingPage/Header";
 import { Hero } from "~/components/LandingPage/Hero";
 import { PrimaryFeatures } from "~/components/LandingPage/PrimaryFeatures";
 import { Testimonials } from "~/components/LandingPage/Testimonials";
-import mixpanel from "mixpanel-browser";
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
-
-mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
-  debug: process.env.NODE_ENV !== "production",
-});
+import { usePostHog } from "posthog-js/react";
 
 const Home: NextPage = () => {
   const { isSignedIn, user } = useUser();
+  const postHog = usePostHog();
 
   useEffect(() => {
     if (isSignedIn && user) {
-      mixpanel.identify(user.id);
-      mixpanel.people.set({
-        $name: user.fullName,
-        $email: user.primaryEmailAddress?.emailAddress,
+      postHog?.identify(user.id, {
+        name: user.fullName,
+        email: user.primaryEmailAddress?.emailAddress,
       });
-      mixpanel.track("Visit Landing Page", {
+      postHog?.capture("Visit Landing Page", {
         distinct_id: user.id,
         time: new Date(),
       });

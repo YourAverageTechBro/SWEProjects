@@ -8,14 +8,11 @@ import {
 import { Button } from "src/components/LandingPage/Button";
 import Link from "next/link";
 import { Logo } from "~/components/LandingPage/Logo";
-import mixpanel from "mixpanel-browser";
-
-mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_KEY ?? "", {
-  debug: process.env.NODE_ENV !== "production",
-});
+import { usePostHog } from "posthog-js/react";
 
 export default function Header() {
   const { user } = useUser();
+  const postHog = usePostHog();
 
   return (
     <header
@@ -30,12 +27,11 @@ export default function Header() {
         <Logo
           className="h-10 w-auto"
           onClick={() => {
-            mixpanel.identify(user?.id);
-            mixpanel.people.set({
-              $name: user?.fullName,
-              $email: user?.primaryEmailAddress?.emailAddress,
+            postHog?.identify(user?.id, {
+              name: user?.fullName,
+              email: user?.primaryEmailAddress?.emailAddress,
             });
-            mixpanel.track("Click on Logo", {
+            postHog?.capture("Click on Logo", {
               distinct_id: user?.id,
               time: new Date(),
             });
@@ -50,12 +46,11 @@ export default function Header() {
             aria-label="My projects"
             className={`rounded-lg p-4 font-semibold hover:bg-indigo-200`}
             onClick={() => {
-              mixpanel.identify(user?.id);
-              mixpanel.people.set({
-                $name: user?.fullName,
-                $email: user?.primaryEmailAddress?.emailAddress,
+              postHog?.identify(user?.id, {
+                name: user?.fullName,
+                email: user?.primaryEmailAddress?.emailAddress,
               });
-              mixpanel.track("Click on my projects", {
+              postHog?.capture("Click on my projects", {
                 distinct_id: user?.id,
                 time: new Date(),
               });
@@ -69,12 +64,11 @@ export default function Header() {
             aria-label="View all projects"
             className={`rounded-lg p-4 font-semibold hover:bg-indigo-200`}
             onClick={() => {
-              mixpanel.identify(user?.id);
-              mixpanel.people.set({
-                $name: user?.fullName,
-                $email: user?.primaryEmailAddress?.emailAddress,
+              postHog?.identify(user?.id, {
+                name: user?.fullName,
+                email: user?.primaryEmailAddress?.emailAddress,
               });
-              mixpanel.track("Click on view all projects", {
+              postHog?.capture("Click on view all projects", {
                 distinct_id: user?.id,
                 time: new Date(),
               });

@@ -4,10 +4,10 @@ import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import Header from "~/components/Common/Header";
 import React, { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import mixpanel from "mixpanel-browser";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { type Projects } from "@prisma/client";
+import { usePostHog } from "posthog-js/react";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
@@ -16,16 +16,16 @@ type Props = {
 };
 export default function AllProjects({ data }: Props) {
   const router = useRouter();
+  const postHog = usePostHog();
   const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     if (isSignedIn && user) {
-      mixpanel.identify(user.id);
-      mixpanel.people.set({
-        $name: user.fullName,
-        $email: user.primaryEmailAddress?.emailAddress,
+      postHog?.identify(user?.id, {
+        name: user?.fullName,
+        email: user?.primaryEmailAddress?.emailAddress,
       });
-      mixpanel.track("Visit all projects", {
+      postHog?.capture("Visit all projects", {
         distinct_id: user.id,
         time: new Date(),
       });
@@ -93,7 +93,7 @@ export default function AllProjects({ data }: Props) {
                 className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 onClick={() => {
                   if (user) {
-                    mixpanel.track("Clicked Learn More Button", {
+                    postHog?.capture("Clicked Learn More Button", {
                       distinct_id: user.id,
                       project_id: project.id,
                       time: new Date(),
@@ -110,7 +110,7 @@ export default function AllProjects({ data }: Props) {
                 className="mt-4 block w-full rounded-md bg-indigo-50 py-6  text-center text-2xl font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100"
                 onClick={() => {
                   if (user) {
-                    mixpanel.track("Clicked View Demo Button", {
+                    postHog?.capture("Clicked View Demo Button", {
                       distinct_id: user.id,
                       project_id: project.id,
                       time: new Date(),
