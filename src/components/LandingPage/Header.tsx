@@ -8,13 +8,14 @@ import { Button } from "src/components/LandingPage/Button";
 import { Container } from "src/components/LandingPage/Container";
 import { Logo } from "~/components/LandingPage/Logo";
 import { NavLink } from "~/components/LandingPage/NavLink";
+import { StarIcon } from "@heroicons/react/24/outline";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 function MobileNavLink({ href, children }) {
   return (
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    <Popover.Button as={Link} href={href} className="block w-full p-2">
+    <Popover.Button as={Link} href={href} className="inline-flex w-full p-2">
       {children}
     </Popover.Button>
   );
@@ -88,7 +89,13 @@ function MobileNavigation() {
           >
             <MobileNavLink href="#features">Features</MobileNavLink>
             <MobileNavLink href="#testimonials">Testimonials</MobileNavLink>
-            <MobileNavLink href="#pricing">Pricing</MobileNavLink>
+            <MobileNavLink href="#faq">FAQ</MobileNavLink>
+            <MobileNavLink
+              href={"https://github.com/YourAverageTechBro/SWEProjects"}
+            >
+              {" "}
+              Star us on Github <StarIcon className={"h-6 w-6"} />
+            </MobileNavLink>
             <hr className="m-2 border-slate-300/40" />
             {/*<MobileNavLink>*/}
             {/* Signed-out users get sign in button */}
@@ -123,6 +130,12 @@ export function Header() {
               <NavLink href="#features">Features</NavLink>
               <NavLink href="#testimonials">Testimonials</NavLink>
               <NavLink href="#faq">FAQ</NavLink>
+              <NavLink
+                href={"https://github.com/YourAverageTechBro/SWEProjects"}
+              >
+                {" "}
+                Star us on Github <StarIcon className={"h-6 w-6"} />
+              </NavLink>
             </div>
           </div>
           <div className="flex items-center gap-x-5 md:gap-x-8">
