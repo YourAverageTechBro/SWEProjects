@@ -61,7 +61,7 @@ model Questions {
   instructions   Instructions? @relation(fields: [instructionsId], references: [id])
   userId         String
   question       String        @default("") @db.LongText
-  Comment        Comment[]
+  comments       Comment[]
 }
 
 model Comment {

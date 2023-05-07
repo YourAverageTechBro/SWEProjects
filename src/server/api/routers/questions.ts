@@ -50,6 +50,9 @@ export const questionsRouter = createTRPCRouter({
         where: {
           instructionsId,
         },
+        include: {
+          comments: true,
+        },
       });
 
       ctx.log?.info("[questions] Completed endpoint", {
