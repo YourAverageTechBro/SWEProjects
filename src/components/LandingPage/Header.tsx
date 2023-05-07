@@ -3,7 +3,6 @@ import {
   SignOutButton,
   SignUpButton,
   useUser,
-  isSignedIn,
 } from "@clerk/nextjs";
 import { Fragment } from "react";
 import Link from "next/link";
@@ -109,6 +108,8 @@ function MobileNavigation() {
             {/* Signed-out users get sign in button */}
             {isSignedIn ? (
               <SignOutButton>
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/*@ts-ignore*/}
                 <Button color="blue">
                   <span>Sign Out</span>
                 </Button>
