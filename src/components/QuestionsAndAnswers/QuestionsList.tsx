@@ -2,11 +2,17 @@ import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/outline";
 import { getRelativeDate } from "~/utils/utils";
 import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import { type Dispatch, type SetStateAction } from "react";
+import { type Questions } from "@prisma/client";
 
 type Props = {
   instructionsId: string;
+  setFocusedQuestion: Dispatch<SetStateAction<Questions | undefined>>;
 };
-export default function QuestionsList({ instructionsId }: Props) {
+export default function QuestionsList({
+  instructionsId,
+  setFocusedQuestion,
+}: Props) {
   const { data, isFetching } =
     api.questions.getAllQuestionsForInstruction.useQuery(
       {
@@ -34,6 +40,7 @@ export default function QuestionsList({ instructionsId }: Props) {
           className={
             "rounded-lg bg-gray-100 p-4 hover:cursor-pointer hover:bg-gray-200"
           }
+          onClick={() => setFocusedQuestion(question)}
         >
           <div className={"text-2xl font-bold"}> {question.question} </div>
           <div className={"flex items-center justify-between"}>

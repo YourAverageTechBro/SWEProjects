@@ -60,6 +60,7 @@ model Questions {
   instructionsId String
   instructions   Instructions? @relation(fields: [instructionsId], references: [id])
   userId         String
+  title          String        @default("") @db.LongText
   question       String        @default("") @db.LongText
   comments       Comment[]
 }
