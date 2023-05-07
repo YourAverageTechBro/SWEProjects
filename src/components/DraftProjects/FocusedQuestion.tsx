@@ -1,6 +1,7 @@
-import { type Questions } from "@prisma/client";
 import { ArrowSmallLeftIcon } from "@heroicons/react/24/solid";
 import { type Dispatch, type SetStateAction } from "react";
+import { type Questions } from "@prisma/client";
+import CommentBox from "~/components/QuestionsAndAnswers/CommentBox";
 
 type Props = {
   question: Questions;
@@ -19,6 +20,7 @@ export default function FocusedQuestionComponent({
       <div className={"mt-4 text-xl font-medium"}>{question.question}</div>
 
       <div className="mt-4 border-t border-gray-400"></div>
+      <CommentBox questionId={question.id} />
     </div>
   );
 }
