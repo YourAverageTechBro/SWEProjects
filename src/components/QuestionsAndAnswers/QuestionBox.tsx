@@ -9,12 +9,14 @@ type Props = {
   instructionsId: string;
 };
 export default function QuestionBox({ instructionsId }: Props) {
+  const [title, setTitle] = useState<string | undefined>("");
   const [question, setQuestion] = useState<string | undefined>("");
   const { userId } = useAuth();
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.questions.create.useMutation({
     onSuccess: () => {
+      setTitle("");
       setQuestion("");
       void ctx.questions.getAllQuestionsForInstruction.invalidate();
     },
@@ -29,8 +31,8 @@ export default function QuestionBox({ instructionsId }: Props) {
   });
 
   const postQuestion = () => {
-    if (question && userId) {
-      mutate({ userId, instructionsId, question });
+    if (title && question && userId) {
+      mutate({ userId, instructionsId, question, title });
     }
   };
 
@@ -44,6 +46,19 @@ export default function QuestionBox({ instructionsId }: Props) {
         Ask a question below{" "}
       </p>
       <div className={"px-4"}>
+        <label className="text-xl font-bold text-gray-700">
+          {" "}
+          Question Title:
+        </label>
+        <input
+          className="mb-4 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <label className="text-xl font-bold text-gray-700">
+          {" "}
+          Question Details:
+        </label>
         <MdEditor
           value={question}
           onChange={setQuestion}
