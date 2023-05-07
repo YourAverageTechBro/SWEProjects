@@ -36,7 +36,7 @@ export default function QuestionBox({ instructionsId }: Props) {
 
   return (
     <div
-      className={"h-full w-full overflow-scroll rounded-lg pb-8"}
+      className={"h-full w-full overflow-scroll rounded-lg"}
       data-color-mode="light"
     >
       <p className={"my-4 text-center text-2xl font-semibold"}>
