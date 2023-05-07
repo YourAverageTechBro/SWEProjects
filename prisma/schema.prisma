@@ -66,12 +66,12 @@ model Questions {
 }
 
 model Comment {
-  id          String     @id @default(cuid())
-  createdAt   DateTime   @default(now())
-  questionsId String
-  questions   Questions? @relation(fields: [questionsId], references: [id])
-  userId      String
-  comment     String     @default("") @db.LongText
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  questionId String
+  questions  Questions? @relation(fields: [questionId], references: [id])
+  userId     String
+  comment    String     @default("") @db.LongText
 }
 
 model CodeBlocks {
