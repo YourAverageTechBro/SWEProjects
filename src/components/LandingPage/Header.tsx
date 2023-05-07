@@ -1,4 +1,10 @@
-import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignOutButton,
+  SignUpButton,
+  useUser,
+  isSignedIn,
+} from "@clerk/nextjs";
 import { Fragment } from "react";
 import Link from "next/link";
 import { Popover, Transition } from "@headlessui/react";
@@ -54,6 +60,8 @@ function MobileNavIcon({ open }) {
 }
 
 function MobileNavigation() {
+  const { isSignedIn } = useUser();
+
   return (
     <Popover>
       <Popover.Button
@@ -99,13 +107,21 @@ function MobileNavigation() {
             <hr className="m-2 border-slate-300/40" />
             {/*<MobileNavLink>*/}
             {/* Signed-out users get sign in button */}
-            <SignInButton>
-              {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
-              {/*@ts-ignore*/}
-              <Button color="blue">
-                <span>Sign in</span>
-              </Button>
-            </SignInButton>
+            {isSignedIn ? (
+              <SignOutButton>
+                <Button color="blue">
+                  <span>Sign Out</span>
+                </Button>
+              </SignOutButton>
+            ) : (
+              <SignInButton>
+                {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
+                {/*@ts-ignore*/}
+                <Button color="blue">
+                  <span>Sign in</span>
+                </Button>
+              </SignInButton>
+            )}
             {/*</MobileNavLink>*/}
           </Popover.Panel>
         </Transition.Child>
