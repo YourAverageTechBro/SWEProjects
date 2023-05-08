@@ -3,13 +3,11 @@ import { getRelativeDate } from "~/utils/utils";
 import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { type Dispatch, type SetStateAction } from "react";
-import { type Comment, type Questions } from "@prisma/client";
+import { type Questions } from "@prisma/client";
 
 type Props = {
   instructionsId: string;
-  setFocusedQuestion: Dispatch<
-    SetStateAction<(Questions & { comments: Comment[] }) | undefined>
-  >;
+  setFocusedQuestion: Dispatch<SetStateAction<Questions | undefined>>;
 };
 export default function QuestionsList({
   instructionsId,
@@ -48,7 +46,7 @@ export default function QuestionsList({
           <div className={"flex items-center justify-between"}>
             <div className={"flex items-center"}>
               <ChatBubbleOvalLeftEllipsisIcon className={"h-4 w-4"} />
-              {question.comments.length}
+              {question._count.comments}
             </div>
 
             {getRelativeDate(question.createdAt)}

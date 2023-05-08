@@ -35,4 +35,33 @@ export const commentsRouter = createTRPCRouter({
 
       return result;
     }),
+  getAllCommentsForQuestion: privateProcedure
+    .input(z.object({ questionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[comments] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getAllCommentsForQuestion",
+        input: JSON.stringify(input),
+      });
+
+      const { questionId } = input;
+
+      const result = await ctx.prisma.comment.findMany({
+        where: {
+          questionId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      ctx.log?.info("[comments] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getAllCommentsForQuestion",
+        input: JSON.stringify(input),
+        result: JSON.stringify(result),
+      });
+
+      return result;
+    }),
 });

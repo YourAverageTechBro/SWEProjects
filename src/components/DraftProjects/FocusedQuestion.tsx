@@ -24,7 +24,7 @@ export default function FocusedQuestionComponent({
 
       <div className="mt-4 border-t border-gray-400"></div>
       <CommentBox questionId={question.id} />
-      <CommentsList comments={question.comments} />
+      <CommentsList questionId={question.id} />
     </div>
   );
 }
