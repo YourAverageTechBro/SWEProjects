@@ -18,7 +18,9 @@ export default function QuestionBox({ instructionsId }: Props) {
     onSuccess: () => {
       setTitle("");
       setQuestion("");
-      void ctx.questions.getAllQuestionsForInstruction.invalidate();
+      void ctx.questions.getAllQuestionsForInstruction.invalidate({
+        instructionsId,
+      });
     },
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;

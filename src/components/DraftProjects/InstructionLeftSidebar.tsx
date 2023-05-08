@@ -56,7 +56,7 @@ export default function InstructionLeftSidebar({
         )}
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
           isQAFeatureEnabled && (
-            <div className={"h-full w-full"}>
+            <div className={"h-full w-full overflow-scroll"}>
               <QuestionAndAnswerComponent instructionsId={instructionId} />
             </div>
           )}
