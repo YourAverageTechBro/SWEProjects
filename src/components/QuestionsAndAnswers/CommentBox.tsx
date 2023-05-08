@@ -14,7 +14,7 @@ export default function CommentBox({ questionId }: Props) {
   const { mutate, isLoading } = api.comments.create.useMutation({
     onSuccess: () => {
       setComment("");
-      void ctx.comments.getAllCommentsForQuestion.invalidate();
+      void ctx.comments.getAllCommentsForQuestion.invalidate({ questionId });
     },
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;
