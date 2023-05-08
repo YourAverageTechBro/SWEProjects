@@ -53,7 +53,11 @@ export const questionsRouter = createTRPCRouter({
           instructionsId,
         },
         include: {
-          comments: true,
+          comments: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",

@@ -1,11 +1,14 @@
 import { ArrowSmallLeftIcon } from "@heroicons/react/24/solid";
 import { type Dispatch, type SetStateAction } from "react";
-import { type Questions } from "@prisma/client";
+import { type Comment, type Questions } from "@prisma/client";
 import CommentBox from "~/components/QuestionsAndAnswers/CommentBox";
+import CommentsList from "~/components/QuestionsAndAnswers/CommentsList";
 
 type Props = {
-  question: Questions;
-  setFocusedQuestion: Dispatch<SetStateAction<Questions | undefined>>;
+  question: Questions & { comments: Comment[] };
+  setFocusedQuestion: Dispatch<
+    SetStateAction<(Questions & { comments: Comment[] }) | undefined>
+  >;
 };
 export default function FocusedQuestionComponent({
   question,
@@ -21,6 +24,7 @@ export default function FocusedQuestionComponent({
 
       <div className="mt-4 border-t border-gray-400"></div>
       <CommentBox questionId={question.id} />
+      <CommentsList comments={question.comments} />
     </div>
   );
 }

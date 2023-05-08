@@ -2,14 +2,14 @@ import QuestionBox from "~/components/QuestionsAndAnswers/QuestionBox";
 import QuestionsList from "~/components/QuestionsAndAnswers/QuestionsList";
 import FocusedQuestionComponent from "~/components/DraftProjects/FocusedQuestion";
 import { useState } from "react";
-import { type Questions } from "@prisma/client";
+import { type Comment, type Questions } from "@prisma/client";
 
 type Props = {
   instructionsId: string;
 };
 export default function QuestionAndAnswerComponent({ instructionsId }: Props) {
   const [focusedQuestion, setFocusedQuestion] = useState<
-    Questions | undefined
+    Questions & { comments: Comment[] }
   >();
 
   return (

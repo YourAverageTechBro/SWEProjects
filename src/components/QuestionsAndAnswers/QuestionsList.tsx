@@ -3,11 +3,13 @@ import { getRelativeDate } from "~/utils/utils";
 import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { type Dispatch, type SetStateAction } from "react";
-import { type Questions } from "@prisma/client";
+import { type Comment, type Questions } from "@prisma/client";
 
 type Props = {
   instructionsId: string;
-  setFocusedQuestion: Dispatch<SetStateAction<Questions | undefined>>;
+  setFocusedQuestion: Dispatch<
+    SetStateAction<(Questions & { comments: Comment[] }) | undefined>
+  >;
 };
 export default function QuestionsList({
   instructionsId,
