@@ -5,9 +5,7 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
-type Props = {
-  questionId: string;
-};
+type Props = { questionId: string };
 export default function CommentBox({ questionId }: Props) {
   const [comment, setComment] = useState<string | undefined>("");
   const { userId } = useAuth();
@@ -16,7 +14,7 @@ export default function CommentBox({ questionId }: Props) {
   const { mutate, isLoading } = api.comments.create.useMutation({
     onSuccess: () => {
       setComment("");
-      void ctx.questions.getAllQuestionsForInstruction.invalidate();
+      void ctx.comments.getAllCommentsForQuestion.invalidate({ questionId });
     },
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;

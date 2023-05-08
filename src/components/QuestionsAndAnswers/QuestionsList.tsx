@@ -42,11 +42,11 @@ export default function QuestionsList({
           }
           onClick={() => setFocusedQuestion(question)}
         >
-          <div className={"text-2xl font-bold"}> {question.question} </div>
+          <div className={"text-2xl font-bold"}> {question.title} </div>
           <div className={"flex items-center justify-between"}>
             <div className={"flex items-center"}>
               <ChatBubbleOvalLeftEllipsisIcon className={"h-4 w-4"} />
-              {question.comments.length}
+              {question._count.comments}
             </div>
 
             {getRelativeDate(question.createdAt)}

@@ -8,12 +8,10 @@ type Props = {
   instructionsId: string;
 };
 export default function QuestionAndAnswerComponent({ instructionsId }: Props) {
-  const [focusedQuestion, setFocusedQuestion] = useState<
-    Questions | undefined
-  >();
+  const [focusedQuestion, setFocusedQuestion] = useState<Questions>();
 
   return (
-    <div>
+    <div className={"overflow-scroll"}>
       {" "}
       {focusedQuestion ? (
         <FocusedQuestionComponent
