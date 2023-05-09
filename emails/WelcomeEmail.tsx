@@ -26,6 +26,18 @@ const WelcomeEmail = () => {
             </p>
             <ul>
               <li>
+                Sign up for
+                <Link
+                  className="underline hover:cursor-pointer"
+                  href="https://sweprojects.ck.page/e50bc47670"
+                >
+                  {" email updates "}
+                </Link>
+                to get notified when new projects and features are released (we
+                promise to not be annoying)
+              </li>
+
+              <li>
                 Join
                 <Link
                   className="underline hover:cursor-pointer"
