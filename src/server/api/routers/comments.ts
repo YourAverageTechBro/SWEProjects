@@ -8,6 +8,7 @@ export const commentsRouter = createTRPCRouter({
         userId: z.string(),
         questionId: z.string(),
         comment: z.string(),
+        parentCommentId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -16,13 +17,14 @@ export const commentsRouter = createTRPCRouter({
         function: "create",
         input: JSON.stringify(input),
       });
-      const { userId, questionId, comment } = input;
+      const { userId, questionId, comment, parentCommentId } = input;
 
       const result = await ctx.prisma.comment.create({
         data: {
           userId,
           questionId,
           comment,
+          parentCommentId,
         },
       });
 
@@ -49,6 +51,10 @@ export const commentsRouter = createTRPCRouter({
       const result = await ctx.prisma.comment.findMany({
         where: {
           questionId,
+          parentCommentId: null,
+        },
+        include: {
+          replies: true,
         },
         orderBy: {
           createdAt: "desc",
