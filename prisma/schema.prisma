@@ -66,12 +66,15 @@ model Questions {
 }
 
 model Comment {
-  id         String     @id @default(cuid())
-  createdAt  DateTime   @default(now())
-  questionId String
-  questions  Questions? @relation(fields: [questionId], references: [id])
-  userId     String
-  comment    String     @default("") @db.LongText
+  id              String     @id @default(cuid())
+  createdAt       DateTime   @default(now())
+  questionId      String
+  questions       Questions? @relation(fields: [questionId], references: [id])
+  userId          String
+  comment         String     @default("") @db.LongText
+  parentCommentId String?
+  parentComment   Comment?   @relation("CommentThread", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies         Comment[]  @relation("CommentThread")
 }
 
 model CodeBlocks {

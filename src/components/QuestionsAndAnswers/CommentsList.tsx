@@ -2,11 +2,14 @@ import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import EmptyComments from "~/components/Images/EmptyComments";
 import { getRelativeDate } from "~/utils/utils";
+import { useState } from "react";
+import CommentBox from "~/components/QuestionsAndAnswers/CommentBox";
 
 type Props = {
   questionId: string;
 };
 export default function CommentsList({ questionId }: Props) {
+  const [commentToReplyTo, setCommentToReplyTo] = useState("");
   const { data, isFetching } = api.comments.getAllCommentsForQuestion.useQuery(
     {
       questionId,
@@ -15,6 +18,8 @@ export default function CommentsList({ questionId }: Props) {
       refetchOnWindowFocus: false,
     }
   );
+
+  const cancelReplyToComment = () => setCommentToReplyTo("");
 
   if (isFetching)
     return (
@@ -37,9 +42,57 @@ export default function CommentsList({ questionId }: Props) {
       {data.map((comment) => (
         <div key={comment.id}>
           <div>{comment.comment}</div>
-          <p className={"text-xs text-gray-500"}>
-            {getRelativeDate(comment.createdAt)}
-          </p>
+          <div
+            className={"flex items-center justify-between text-xs font-bold"}
+          >
+            <button onClick={() => setCommentToReplyTo(comment.id)}>
+              reply
+            </button>
+            <p className={"text-xs text-gray-500"}>
+              {getRelativeDate(comment.createdAt)}
+            </p>
+          </div>
+          {commentToReplyTo === comment.id && (
+            <div className={"ml-4"}>
+              <CommentBox
+                questionId={questionId}
+                parentCommentId={comment.id}
+                cancelCallback={cancelReplyToComment}
+              />
+            </div>
+          )}
+          {comment.replies.map((reply) => (
+            <>
+              <div
+                key={reply.id}
+                className={"mt-2 rounded-md bg-gray-100 py-2 pl-4"}
+              >
+                <div>{reply.comment}</div>
+                <div
+                  className={
+                    "flex items-center justify-between text-xs font-bold"
+                  }
+                >
+                  <button onClick={() => setCommentToReplyTo(reply.id)}>
+                    reply
+                  </button>
+                  <p className={"text-xs text-gray-500"}>
+                    {getRelativeDate(reply.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              {commentToReplyTo === reply.id && (
+                <div className={"ml-4"}>
+                  <CommentBox
+                    questionId={questionId}
+                    parentCommentId={comment.id}
+                    cancelCallback={cancelReplyToComment}
+                  />
+                </div>
+              )}
+            </>
+          ))}
         </div>
       ))}
     </div>

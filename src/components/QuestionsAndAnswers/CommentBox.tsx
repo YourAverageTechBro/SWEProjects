@@ -5,8 +5,16 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
-type Props = { questionId: string };
-export default function CommentBox({ questionId }: Props) {
+type Props = {
+  parentCommentId?: string;
+  questionId: string;
+  cancelCallback?: () => void;
+};
+export default function CommentBox({
+  parentCommentId,
+  questionId,
+  cancelCallback,
+}: Props) {
   const [comment, setComment] = useState<string | undefined>("");
   const { userId } = useAuth();
   const ctx = api.useContext();
@@ -14,6 +22,7 @@ export default function CommentBox({ questionId }: Props) {
   const { mutate, isLoading } = api.comments.create.useMutation({
     onSuccess: () => {
       setComment("");
+      cancelCallback?.();
       void ctx.comments.getAllCommentsForQuestion.invalidate({ questionId });
     },
     onError: (e) => {
@@ -28,7 +37,7 @@ export default function CommentBox({ questionId }: Props) {
 
   const postComment = () => {
     if (comment && userId) {
-      mutate({ userId, comment, questionId });
+      mutate({ userId, comment, parentCommentId, questionId });
     }
   };
 
@@ -58,6 +67,16 @@ export default function CommentBox({ questionId }: Props) {
         )}{" "}
         Add comment
       </button>
+
+      {cancelCallback && (
+        <button
+          type="button"
+          className="ml-4 rounded-full bg-indigo-50 px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100"
+          onClick={cancelCallback}
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 }
