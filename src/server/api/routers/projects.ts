@@ -90,6 +90,43 @@ export const projectsRouter = createTRPCRouter({
         };
       }>;
     }),
+  getProjectVariantId: publicProcedure
+    .input(
+      z.object({
+        projectsId: z.string().optional(),
+        frontendVariant: z.nativeEnum(FrontendVariant),
+        backendVariant: z.nativeEnum(BackendVariant),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[projects] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getProjectVariantId",
+        input: JSON.stringify(input),
+      });
+
+      const { projectsId, frontendVariant, backendVariant } = input;
+
+      if (!projectsId || !frontendVariant || !backendVariant) return null;
+
+      const result = await ctx.prisma.projectVariant.findMany({
+        where: {
+          projectsId,
+          frontendVariant,
+          backendVariant,
+        },
+      });
+
+      if (result.length !== 1) throw new TRPCError({ code: "CONFLICT" });
+
+      ctx.log?.info("[projects] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getProjectVariantId",
+        input: JSON.stringify(input),
+      });
+
+      return result[0];
+    }),
   getById: publicProcedure
     .input(
       z.object({

@@ -52,6 +52,7 @@ model Instructions {
   codeBlock        CodeBlocks[]
   successMedia     SuccessMedia[]
   questions        Questions[]
+  title            String          @default("") @db.LongText
 }
 
 model Questions {

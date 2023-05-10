@@ -7,8 +7,9 @@ import { useEffect } from "react";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useRouter } from "next/router";
+import Script from "next/script";
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
     // Enable debug mode in development
@@ -33,6 +34,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <PostHogProvider client={posthog}>
       <ClerkProvider {...pageProps}>
         <Component {...pageProps} />
+        <Script src="http://localhost:8097" />
         <Analytics />
       </ClerkProvider>
     </PostHogProvider>
