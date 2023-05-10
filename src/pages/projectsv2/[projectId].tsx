@@ -172,7 +172,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       projectInstructionTitles: projectInstructionTitles ?? [],
-      isQAFeatureEnabled: true,
+      isQAFeatureEnabled,
     },
   };
 };
