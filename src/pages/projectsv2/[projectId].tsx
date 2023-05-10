@@ -10,7 +10,7 @@ import { log } from "next-axiom";
 import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { getAuth } from "@clerk/nextjs/server";
-import InstructionSidebar from "~/components/Projects/InstructionSidebar";
+import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -48,7 +48,6 @@ export default function EditProject({
   const userHasPurchasedProject = purchasedProjects?.some(
     (purchasedProject) => purchasedProject.id === projectId
   );
-  console.log("isAdmin: ", isAdmin);
   if (!userHasPurchasedProject && !isAdmin) return <div> 404 </div>;
 
   return (
@@ -90,6 +89,9 @@ export default function EditProject({
         <div className={"flex"}>
           <div className={"w-1/3"}>
             <InstructionSidebar
+              isEditing={isEditing}
+              isAuthor={isAdmin}
+              isQAFeatureEnabled={isQAFeatureEnabled}
               projectInstructionTitles={projectInstructionTitles}
             />
           </div>
@@ -170,7 +172,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       projectInstructionTitles: projectInstructionTitles ?? [],
-      isQAFeatureEnabled,
+      isQAFeatureEnabled: true,
     },
   };
 };
