@@ -192,4 +192,27 @@ export const instructionsRouter = createTRPCRouter({
 
       return result;
     }),
+  getById: privateProcedure
+    .input(z.object({ instructionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[instructions] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getById",
+        input: JSON.stringify(input),
+      });
+
+      const result = await ctx.prisma.instructions.findUnique({
+        where: {
+          id: input.instructionId,
+        },
+      });
+
+      ctx.log?.info("[instructions] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getById",
+        input: JSON.stringify(input),
+      });
+
+      return result;
+    }),
 });
