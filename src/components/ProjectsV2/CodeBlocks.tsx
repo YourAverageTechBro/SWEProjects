@@ -1,39 +1,40 @@
-import {
-  DiffEditor,
-  Editor,
-  type Monaco,
-  type MonacoDiffEditor,
-} from "@monaco-editor/react";
+import { Editor, type Monaco } from "@monaco-editor/react";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { type editor } from "monaco-editor";
 import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { type CodeBlocks, type Instructions } from "@prisma/client";
+import { type CodeBlocks } from "@prisma/client";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { debounce } from "throttle-debounce";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import CodeDiffSection from "~/components/ProjectsV2/CodeDiffSection";
 
 type Props = {
-  codeBlocks?: CodeBlocks[];
   instructionsId: string;
-  instructions: (Instructions & {
-    codeBlock: CodeBlocks[];
-  })[];
-  viewDiff: boolean;
   isAuthor: boolean;
 };
-export default function DraftCodeBlocks({
-  codeBlocks,
-  instructionsId,
-  instructions,
-  viewDiff,
-  isAuthor,
-}: Props) {
-  const [focusedCodeBlock, setFocusedCodeBlock] = useState(
-    codeBlocks ? codeBlocks[0] : undefined
-  );
+export default function CodeBlocks({ instructionsId, isAuthor }: Props) {
+  const [viewDiff, setViewDiff] = useState(false);
+  const { data: codeBlocks, isFetching } =
+    api.codeBlocks.getCodeBlocksForInstructionId.useQuery(
+      {
+        instructionsId,
+      },
+      {
+        refetchOnWindowFocus: false,
+        onSuccess: (data) => {
+          setFocusedCodeBlock(data[0]);
+        },
+      }
+    );
+
+  const [focusedCodeBlock, setFocusedCodeBlock] = useState<
+    CodeBlocks | undefined
+  >();
+
   const [currentlyEditingCodeBlock, setCurrentlyEditingCodeBlock] = useState<
     CodeBlocks | undefined
   >();
@@ -66,60 +67,57 @@ export default function DraftCodeBlocks({
     }
   }, [focusedCodeBlock]);
 
-  const { mutate: updateCodeBlock, isLoading: isUpdatingCodeBlock } =
-    api.codeBlocks.update.useMutation({
-      onSuccess: (project) => {
-        if (!isInitialized) {
-          setIsInitialized(true);
-        } else {
-          // Show successfully saved state
-          toast.success("Saved!");
-        }
-        setCurrentlyEditingCodeBlock(undefined);
-      },
-      onError: (e) => {
-        const errorMessage = e.data?.zodError?.fieldErrors.content;
-        if (errorMessage && errorMessage[0]) {
-          toast.error(errorMessage[0]);
-        } else {
-          toast.error("Failed to save! Please try again later.");
-        }
-      },
-    });
-
-  const { mutate: createNewCodeBlock, isLoading: isCreatingNewCodeBlock } =
-    api.codeBlocks.create.useMutation({
-      onSuccess: (project) => {
+  const { mutate: updateCodeBlock } = api.codeBlocks.update.useMutation({
+    onSuccess: () => {
+      if (!isInitialized) {
+        setIsInitialized(true);
+      } else {
         // Show successfully saved state
         toast.success("Saved!");
-        void ctx.projects.getById.invalidate();
-      },
-      onError: (e) => {
-        const errorMessage = e.data?.zodError?.fieldErrors.content;
-        if (errorMessage && errorMessage[0]) {
-          toast.error(errorMessage[0]);
-        } else {
-          toast.error("Failed to save! Please try again later.");
-        }
-      },
-    });
+      }
+      setCurrentlyEditingCodeBlock(undefined);
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to save! Please try again later.");
+      }
+    },
+  });
 
-  const { mutate: deleteCodeBlock, isLoading: isDeletingCodeBlock } =
-    api.codeBlocks.delete.useMutation({
-      onSuccess: () => {
-        // Show successfully saved state
-        toast.success("Saved!");
-        void ctx.projects.getById.invalidate();
-      },
-      onError: (e) => {
-        const errorMessage = e.data?.zodError?.fieldErrors.content;
-        if (errorMessage && errorMessage[0]) {
-          toast.error(errorMessage[0]);
-        } else {
-          toast.error("Failed to save! Please try again later.");
-        }
-      },
-    });
+  const { mutate: createNewCodeBlock } = api.codeBlocks.create.useMutation({
+    onSuccess: () => {
+      // Show successfully saved state
+      toast.success("Saved!");
+      void ctx.projects.getById.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to save! Please try again later.");
+      }
+    },
+  });
+
+  const { mutate: deleteCodeBlock } = api.codeBlocks.delete.useMutation({
+    onSuccess: () => {
+      // Show successfully saved state
+      toast.success("Saved!");
+      void ctx.projects.getById.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to save! Please try again later.");
+      }
+    },
+  });
 
   const handleEditorChange = (
     value: string | undefined,
@@ -139,17 +137,6 @@ export default function DraftCodeBlocks({
 
   const handleEditorDidMount = useCallback(
     (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
-      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-        jsx: monaco.languages.typescript.JsxEmit.Preserve,
-        target: monaco.languages.typescript.ScriptTarget.ES2020,
-        esModuleInterop: true,
-      });
-    },
-    []
-  );
-
-  const handleDiffEditorDidMount = useCallback(
-    (editor: MonacoDiffEditor, monaco: Monaco) => {
       monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
         jsx: monaco.languages.typescript.JsxEmit.Preserve,
         target: monaco.languages.typescript.ScriptTarget.ES2020,
@@ -186,24 +173,10 @@ export default function DraftCodeBlocks({
     });
   };
 
-  const findMostRecentCodeBlock = () => {
-    let mostRecentCodeBlock: CodeBlocks | undefined;
-
-    instructions.forEach(
-      (instruction: Instructions & { codeBlock: CodeBlocks[] }) => {
-        instruction.codeBlock.forEach((codeBlock) => {
-          if (codeBlock.fileName === focusedCodeBlock?.fileName) {
-            mostRecentCodeBlock = codeBlock;
-          }
-        });
-      }
-    );
-
-    return mostRecentCodeBlock?.code;
-  };
+  if (isFetching) return <LoadingSpinner />;
 
   return (
-    <div className={"flex w-2/3 flex-col"}>
+    <div className={"flex h-full w-full flex-col"}>
       <div className={"overflow-hidden border-b"}>
         <div className={"flex items-center"}>
           <div className={"flex overflow-x-scroll"}>
@@ -264,20 +237,10 @@ export default function DraftCodeBlocks({
             </div>
           )}
         </div>
-        {viewDiff ? (
-          <DiffEditor
-            height={"100vh"}
-            theme="vs-dark"
-            language={"typescript"}
-            original={findMostRecentCodeBlock()}
-            modified={focusedCodeBlock?.code}
-            onMount={handleDiffEditorDidMount}
-            options={{
-              renderSideBySide: false,
-              readOnly: !isAuthor,
-            }}
-          />
-        ) : (
+        {viewDiff && focusedCodeBlock && (
+          <CodeDiffSection codeBlock={focusedCodeBlock} isAuthor={isAuthor} />
+        )}
+        {!viewDiff && focusedCodeBlock && (
           <Editor
             defaultLanguage="typescript"
             theme="vs-dark"

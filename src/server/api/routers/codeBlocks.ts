@@ -129,4 +129,65 @@ export const codeBlocksRouter = createTRPCRouter({
 
       return result;
     }),
+  getCodeBlocksForInstructionId: privateProcedure
+    .input(z.object({ instructionsId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[codeBlocks] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getCodeBlocksForInstructionId",
+        input: JSON.stringify(input),
+      });
+
+      const result = await ctx.prisma.codeBlocks.findMany({
+        where: {
+          instructionsId: input.instructionsId,
+        },
+      });
+
+      ctx.log?.info("[codeBlocks] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getCodeBlocksForInstructionId",
+        input: JSON.stringify(input),
+        result: JSON.stringify(result),
+      });
+
+      return result;
+    }),
+  getMostRecentDiffForFileName: privateProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+        createdAt: z.date(),
+        instructionsId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[codeBlocks] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getMostRecentDiffForFileName",
+        input: JSON.stringify(input),
+      });
+      const { fileName, createdAt, instructionsId } = input;
+      const result = await ctx.prisma.codeBlocks.findMany({
+        where: {
+          fileName: fileName,
+          createdAt: {
+            lte: createdAt,
+          },
+          instructionsId: instructionsId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      ctx.log?.info("[codeBlocks] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getMostRecentDiffForFileName",
+        input: JSON.stringify(input),
+        result: JSON.stringify(result),
+      });
+
+      return result[0];
+    }),
 });

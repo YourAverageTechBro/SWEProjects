@@ -5,33 +5,23 @@ import { debounce } from "throttle-debounce";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import MdEditor from "~/components/Common/MdEditor/MdEditor";
-import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
   instructionId: string;
   readOnly: boolean;
   isAuthor: boolean;
+  initialExplanation: string;
 };
 export default function TextExplanationComponent({
   instructionId,
   readOnly,
   isAuthor,
+  initialExplanation,
 }: Props) {
-  const [explanation, setExplanation] = useState<string | undefined>();
+  const [explanation, setExplanation] = useState<string | undefined>(
+    initialExplanation
+  );
   const [isInitialized, setIsInitialized] = useState(false);
-
-  const { isFetching: isFetchingInstruction } =
-    api.instructions.getById.useQuery(
-      {
-        instructionId,
-      },
-      {
-        refetchOnWindowFocus: false,
-        onSuccess: (instruction) => {
-          setExplanation(instruction?.explanation);
-        },
-      }
-    );
 
   const debouncedSave = useCallback(
     debounce(1000, (instructionId: string, explanation: string) => {
@@ -46,7 +36,7 @@ export default function TextExplanationComponent({
         debouncedSave(instructionId, explanation);
       }
     } catch (error: any) {}
-  }, [explanation, debouncedSave, isAuthor, instructionId]);
+  }, [explanation, debouncedSave]);
 
   const { mutate } = api.instructions.update.useMutation({
     onSuccess: () => {
@@ -72,18 +62,14 @@ export default function TextExplanationComponent({
       className={"h-full w-full overflow-scroll rounded-lg border"}
       data-color-mode="light"
     >
-      {isFetchingInstruction ? (
-        <LoadingSpinner />
-      ) : (
-        <MdEditor
-          value={explanation}
-          onChange={setExplanation}
-          index={0}
-          hideToolbar={readOnly}
-          preview={readOnly ? "preview" : "live"}
-          height={"100%"}
-        />
-      )}
+      <MdEditor
+        value={explanation}
+        onChange={setExplanation}
+        index={0}
+        hideToolbar={readOnly}
+        preview={readOnly ? "preview" : "live"}
+        height={"70vh"}
+      />
     </div>
   );
 }

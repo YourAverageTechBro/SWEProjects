@@ -11,6 +11,7 @@ import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { getAuth } from "@clerk/nextjs/server";
 import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
+import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -21,16 +22,26 @@ export default function EditProject({
   isQAFeatureEnabled,
   projectInstructionTitles,
 }: Props) {
-  console.log("projectInstructionTitles: ", projectInstructionTitles);
   const user = useUser();
   const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
-  const { projectId, successfullyPurchased } = router.query as {
+  const { instructionId, projectId, successfullyPurchased } = router.query as {
+    instructionId: string;
     projectId: string;
     successfullyPurchased?: string;
   };
+
+  const { data: instruction, isFetching: isFetchingInstruction } =
+    api.instructions.getById.useQuery(
+      {
+        instructionId,
+      },
+      {
+        refetchOnWindowFocus: false,
+      }
+    );
 
   const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
     api.projects.getUsersPurchasedProjects.useQuery(
@@ -42,13 +53,59 @@ export default function EditProject({
       }
     );
 
+  const findPreviousInstruction = () => {
+    const currentInstructionIndex = projectInstructionTitles.findIndex(
+      (instruction) => instruction.id === instructionId
+    );
+
+    // instruction not found
+    if (currentInstructionIndex === -1) {
+      // TODO (add sentry alert if instruction index is not found)
+      log.error(`[projectsv2] Instruction id index not found`, {
+        instructionId,
+        projectId,
+      });
+      return null;
+    }
+
+    if (currentInstructionIndex === 0) return null;
+
+    return projectInstructionTitles[currentInstructionIndex - 1];
+  };
+
+  const findNextInstruction = () => {
+    const currentInstructionIndex = projectInstructionTitles.findIndex(
+      (instruction) => instruction.id === instructionId
+    );
+
+    // instruction not found
+    if (currentInstructionIndex === -1) {
+      // TODO (add sentry alert if instruction index is not found)
+      log.error(`[projectsv2] Instruction id index not found`, {
+        instructionId,
+        projectId,
+      });
+      return null;
+    }
+
+    if (currentInstructionIndex === projectInstructionTitles.length - 1)
+      return null;
+
+    return projectInstructionTitles[currentInstructionIndex + 1];
+  };
+
   if (!projectId) return <div>404</div>;
-  if (isFetchingPurchasedProjects) return <LoadingSpinner />;
+  if (isFetchingPurchasedProjects || isFetchingInstruction)
+    return <LoadingSpinner />;
 
   const userHasPurchasedProject = purchasedProjects?.some(
     (purchasedProject) => purchasedProject.id === projectId
   );
   if (!userHasPurchasedProject && !isAdmin) return <div> 404 </div>;
+  if (!instruction) return <div> 404 </div>;
+
+  const previousInstruction = findPreviousInstruction();
+  const nextInstruction = findNextInstruction();
 
   return (
     <>
@@ -87,15 +144,73 @@ export default function EditProject({
           )}
         </div>
         <div className={"flex"}>
-          <div className={"w-1/3"}>
+          <div className={`${instruction.hasCodeBlocks ? "w-1/3" : "w-full"}`}>
             <InstructionSidebar
               isEditing={isEditing}
               isAuthor={isAdmin}
               isQAFeatureEnabled={isQAFeatureEnabled}
               projectInstructionTitles={projectInstructionTitles}
+              instruction={instruction}
+              projectId={projectId}
             />
           </div>
-          <div className={"w-2/3 bg-green-300"}>placeholder</div>
+          {instruction.hasCodeBlocks && (
+            <div className={"w-2/3"}>
+              <CodeBlocks instructionsId={instructionId} isAuthor={isAdmin} />
+            </div>
+          )}
+        </div>
+
+        <div className={"flex justify-end gap-4 pb-8"}>
+          {previousInstruction && (
+            <button
+              type="button"
+              className="w-48 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={() => {
+                void (async () => {
+                  if (previousInstruction) {
+                    await router.push(
+                      `/projectsv2/${projectId}?instructionId=${previousInstruction.id}`
+                    );
+                  }
+                })();
+              }}
+            >
+              Back
+            </button>
+          )}
+          {nextInstruction ? (
+            <>
+              <button
+                type="button"
+                className="w-48 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                onClick={() => {
+                  void (async () => {
+                    const nextInstruction = findNextInstruction();
+                    if (nextInstruction) {
+                      await router.push(
+                        `/projectsv2/${projectId}?instructionId=${nextInstruction.id}`
+                      );
+                    }
+                  })();
+                }}
+              >
+                Next
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="w-48 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={() => {
+                void (async () => {
+                  await router.push(`/projects`);
+                })();
+              }}
+            >
+              Complete
+            </button>
+          )}
         </div>
       </div>
     </>
@@ -124,7 +239,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     frontendVariant: FrontendVariant.NextJS,
     backendVariant: BackendVariant.Supabase,
   });
-  console.log("PROJECT VARIANT: ", projectVariant);
 
   if (!projectVariant) {
     log.error("[projectsv2/[projectId] No project found in getServerSideProps");
