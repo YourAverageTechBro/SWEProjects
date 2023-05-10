@@ -146,7 +146,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   const { userId } = getAuth(context.req);
 
   let isQAFeatureEnabled = false;
-  if (userId) {
+  if (process.env.NODE_ENV === "production" && userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
       host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
     });

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
 import QuestionsPlaceholder from "~/components/Images/Questions";
-import { useRouter } from "next/router";
 import TextExplanationComponent from "~/components/ProjectsV2/TextExplanationComponent";
+import { type Instructions } from "@prisma/client";
+import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
+import { useRouter } from "next/router";
 
 enum SideBarContent {
   TABLE_OF_CONTENTS = "Table of Contents",
@@ -16,15 +17,18 @@ type Props = {
   isQAFeatureEnabled: boolean;
 
   projectInstructionTitles: { id: string; title: string }[];
+  instruction: Instructions;
+  projectId: string;
 };
 export default function InstructionLeftSidebar({
   isEditing,
   isAuthor,
   isQAFeatureEnabled,
   projectInstructionTitles,
+  instruction,
+  projectId,
 }: Props) {
   const router = useRouter();
-  const { instructionId } = router.query as { instructionId: string };
   const [focusedSideBarContent, setFocusedSideBarContent] = useState(
     SideBarContent.INSTRUCTIONS
   );
@@ -49,15 +53,22 @@ export default function InstructionLeftSidebar({
           </div>
         ))}
       </div>
-      <div className={"h-full overflow-scroll pb-8"}>
+      <div className={"h-full overflow-scroll"}>
         {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
           projectInstructionTitles.map((entry, index) => {
             return (
               <div
                 key={entry.id}
                 className={`border p-4 text-lg font-bold ${
-                  instructionId === entry.id ? "bg-gray-300" : ""
+                  instruction.id === entry.id ? "bg-gray-300" : ""
                 }`}
+                onClick={() => {
+                  void (async () => {
+                    await router.push(
+                      `/projectv2/${projectId}?instructionId=${entry.id}`
+                    );
+                  })();
+                }}
               >
                 {index + 1}. {entry.title}
               </div>
@@ -65,15 +76,16 @@ export default function InstructionLeftSidebar({
           })}
         {focusedSideBarContent === SideBarContent.INSTRUCTIONS && (
           <TextExplanationComponent
-            instructionId={instructionId}
+            instructionId={instruction.id}
             readOnly={!isEditing}
             isAuthor={isAuthor}
+            initialExplanation={instruction.explanation}
           />
         )}
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
           isQAFeatureEnabled && (
             <div className={"h-full w-full overflow-scroll"}>
-              <QuestionAndAnswerComponent instructionsId={instructionId} />
+              <QuestionAndAnswerComponent instructionsId={instruction.id} />
             </div>
           )}
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
