@@ -1,4 +1,8 @@
-import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  privateProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import InstructionsUpdateInput = Prisma.InstructionsUpdateInput;
@@ -158,6 +162,34 @@ export const instructionsRouter = createTRPCRouter({
         input: JSON.stringify(input),
         result: JSON.stringify(result),
       });
+      return result;
+    }),
+  getInstructionTitlesForProjectVariantId: publicProcedure
+    .input(z.object({ projectVariantId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      ctx.log?.info("[instructions] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getInstructionTitlesForProjectVariantId",
+        input: JSON.stringify(input),
+      });
+
+      const result = await ctx.prisma.instructions.findMany({
+        select: {
+          id: true,
+          title: true,
+        },
+        where: {
+          projectVariantId: input.projectVariantId,
+        },
+      });
+
+      ctx.log?.info("[instructions] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getInstructionTitlesForProjectVariantId",
+        input: JSON.stringify(input),
+        result: JSON.stringify(result),
+      });
+
       return result;
     }),
 });
