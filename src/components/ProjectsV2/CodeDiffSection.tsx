@@ -29,6 +29,7 @@ export default function CodeDiffSection({ codeBlock, isAuthor }: Props) {
   );
   return (
     <DiffEditor
+      height={"100vh"}
       theme="vs-dark"
       language={"typescript"}
       original={data?.code}

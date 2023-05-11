@@ -162,6 +162,7 @@ export default function EditProject({
                 instruction={instruction}
                 isAuthor={isAuthor}
                 isAdmin={isAdmin}
+                isEditing={isEditing}
               />
             </div>
           )}
