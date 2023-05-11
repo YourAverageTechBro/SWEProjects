@@ -5,8 +5,15 @@ import React from "react";
 import EmptyCart from "~/components/Images/EmptyCart";
 import Link from "next/link";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import { type GetServerSideProps } from "next";
+import { log } from "next-axiom";
+import { getAuth } from "@clerk/nextjs/server";
+import { PostHog } from "posthog-node";
 
-export default function Projects() {
+type Props = {
+  isNewUiEnabled: boolean;
+};
+export default function Projects({ isNewUiEnabled }: Props) {
   const { userId } = useAuth();
   const { data, isFetching } = api.projects.getUsersPurchasedProjects.useQuery({
     userId,
@@ -51,9 +58,9 @@ export default function Projects() {
             <p className={"text-4xl font-bold"}> No projects found </p>
             <p className={"text-2xl font-bold"}>
               {" "}
-              View all the available projcets{" "}
+              View all the available projects{" "}
               <Link
-                href={"/projects/preview/clgk8x5w1000cvrvb86b13ut7"}
+                href={"/projects/all"}
                 className={"text-indigo-500 underline"}
               >
                 {" "}
@@ -78,7 +85,11 @@ export default function Projects() {
                   src={project.thumbnailUrl}
                   alt={"react-flappy-bird"}
                 />
-                <Link href={`/projects/${project.id}`}>
+                <Link
+                  href={`/${isNewUiEnabled ? "projectsv2" : "projects"}/${
+                    project.id
+                  }`}
+                >
                   <button
                     type="submit"
                     role="link"
@@ -95,3 +106,28 @@ export default function Projects() {
     </>
   );
 }
+export const getServerSideProps: GetServerSideProps<Props> = async (
+  context
+) => {
+  log.info("[projects/[index] Starting getServerSideProps");
+  const { userId } = getAuth(context.req);
+
+  let isNewUiEnabled = false;
+  if (userId && process.env.NODE_ENV === "production") {
+    const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
+    });
+
+    isNewUiEnabled =
+      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+
+    await client.shutdownAsync();
+  }
+
+  log.info("[projects/[index] Completed getServerSideProps");
+  return {
+    props: {
+      isNewUiEnabled,
+    },
+  };
+};

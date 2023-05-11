@@ -293,6 +293,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   const isAuthor = userId === projectVariant.authorId;
 
+  log.info("[projectsv2/[projectId] Completed getServerSideProps");
+
   return {
     props: {
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
