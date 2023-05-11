@@ -5,6 +5,7 @@ import { prisma } from "~/server/db";
 import { Resend } from "resend";
 import ProjectPurchaseEmail from "../../../../emails/ProjectPurchaseEmail";
 import { buffer } from "micro";
+import { PostHog } from "posthog-node";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
@@ -151,6 +152,15 @@ const handleCheckoutSessionCompleted = async (
     throw Error(error);
   }
 
+  const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
+    host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
+  });
+
+  const newProjectsUiEnabled =
+    (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+
+  await client.shutdownAsync();
+
   await resend.sendEmail({
     from: "noreply@updates.sweprojects.com",
     to: emailAddress,
@@ -158,9 +168,9 @@ const handleCheckoutSessionCompleted = async (
     react: (
       <ProjectPurchaseEmail
         projectName={project.title}
-        projectUrl={`${
-          process.env.NEXT_PUBLIC_BASE_URL ?? ""
-        }/projects/${projectId}`}
+        projectUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/${
+          newProjectsUiEnabled ? "projectsv2" : "projects"
+        }/${projectId}`}
       />
     ),
   });

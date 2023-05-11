@@ -164,10 +164,7 @@ export function Header() {
             {isSignedIn ? (
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              <Button
-                href="/projects/preview/clgk8x5w1000cvrvb86b13ut7"
-                color="blue"
-              >
+              <Button href="/projects/all" color="blue">
                 <span>
                   View all <span className="hidden lg:inline">projects</span>
                 </span>
