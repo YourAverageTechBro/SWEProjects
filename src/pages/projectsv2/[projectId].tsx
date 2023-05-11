@@ -16,11 +16,13 @@ import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
   isQAFeatureEnabled: boolean;
+  isAuthor: boolean;
 };
 
 export default function EditProject({
   isQAFeatureEnabled,
   projectInstructionTitles,
+  isAuthor,
 }: Props) {
   const user = useUser();
   const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
@@ -143,7 +145,7 @@ export default function EditProject({
             </p>
           )}
         </div>
-        <div className={"flex"}>
+        <div className={"flex h-[80vh]"}>
           <div className={`${instruction.hasCodeBlocks ? "w-1/3" : "w-full"}`}>
             <InstructionSidebar
               isEditing={isEditing}
@@ -156,7 +158,11 @@ export default function EditProject({
           </div>
           {instruction.hasCodeBlocks && (
             <div className={"w-2/3"}>
-              <CodeBlocks instructionsId={instructionId} isAuthor={isAdmin} />
+              <CodeBlocks
+                instruction={instruction}
+                isAuthor={isAuthor}
+                isAdmin={isAdmin}
+              />
             </div>
           )}
         </div>
@@ -165,7 +171,7 @@ export default function EditProject({
           {previousInstruction && (
             <button
               type="button"
-              className="w-48 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className="w-48 rounded-full bg-indigo-50 px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100"
               onClick={() => {
                 void (async () => {
                   if (previousInstruction) {
@@ -231,6 +237,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       props: {
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
+        isAuthor: false,
       },
     };
   }
@@ -246,6 +253,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       props: {
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
+        isAuthor: false,
       },
     };
   }
@@ -263,6 +271,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       props: {
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
+        isAuthor: false,
       },
     };
   }
@@ -281,12 +290,15 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     await client.shutdownAsync();
   }
 
+  const isAuthor = userId === projectVariant.authorId;
+
   return {
     props: {
       // TODO: Debug why is Superjson unable to parse the dates in the createdAt field?
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       projectInstructionTitles: projectInstructionTitles ?? [],
       isQAFeatureEnabled,
+      isAuthor,
     },
   };
 };

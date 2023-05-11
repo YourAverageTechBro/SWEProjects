@@ -10,7 +10,7 @@ import {
   type SuccessMedia,
 } from "@prisma/client";
 import React, { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type GetServerSideProps } from "next";
@@ -36,6 +36,8 @@ type Props = {
 };
 
 export default function EditProject({ isQAFeatureEnabled, project }: Props) {
+  const user = useUser();
+  const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
@@ -62,7 +64,8 @@ export default function EditProject({ isQAFeatureEnabled, project }: Props) {
   const userHasPurchasedProject = purchasedProjects?.some(
     (purchasedProject) => purchasedProject.id === project?.id
   );
-  if (!userHasPurchasedProject && !isAuthor) return <div> 404 </div>;
+  if (!userHasPurchasedProject && !isAuthor && !isAdmin)
+    return <div> 404 </div>;
 
   const projectVariant = project?.projectVariants?.[0];
 
