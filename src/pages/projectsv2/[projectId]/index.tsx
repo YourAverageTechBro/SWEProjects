@@ -210,11 +210,11 @@ export default function EditProject({
               className="w-48 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               onClick={() => {
                 void (async () => {
-                  await router.push(`/projects`);
+                  await router.push(`/projectsv2/${projectId}/completed`);
                 })();
               }}
             >
-              Complete
+              Finish tutorial
             </button>
           )}
         </div>
