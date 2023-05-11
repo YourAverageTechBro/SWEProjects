@@ -40,6 +40,7 @@ model ProjectVariant {
   instructions    Instructions[]
   Projects        Projects?       @relation(fields: [projectsId], references: [id])
   projectsId      String?
+  authorId        String          @default("")
 }
 
 model Instructions {

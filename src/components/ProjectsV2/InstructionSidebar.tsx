@@ -53,25 +53,25 @@ export default function InstructionLeftSidebar({
           </div>
         ))}
       </div>
-      <div className={"h-full overflow-scroll"}>
+      <div className={"flex h-[70vh] flex-col overflow-scroll"}>
         {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
           projectInstructionTitles.map((entry, index) => {
             return (
-              <div
+              <button
                 key={entry.id}
-                className={`border p-4 text-lg font-bold ${
+                className={`border p-4 text-left text-lg font-bold hover:bg-gray-100 ${
                   instruction.id === entry.id ? "bg-gray-300" : ""
                 }`}
                 onClick={() => {
                   void (async () => {
                     await router.push(
-                      `/projectv2/${projectId}?instructionId=${entry.id}`
+                      `/projectsv2/${projectId}?instructionId=${entry.id}`
                     );
                   })();
                 }}
               >
                 {index + 1}. {entry.title}
-              </div>
+              </button>
             );
           })}
         {focusedSideBarContent === SideBarContent.INSTRUCTIONS && (

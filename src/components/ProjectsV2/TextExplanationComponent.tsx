@@ -68,7 +68,7 @@ export default function TextExplanationComponent({
         index={0}
         hideToolbar={readOnly}
         preview={readOnly ? "preview" : "live"}
-        height={"70vh"}
+        height={"100%"}
       />
     </div>
   );

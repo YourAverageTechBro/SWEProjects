@@ -2,26 +2,32 @@ import { Editor, type Monaco } from "@monaco-editor/react";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { type editor } from "monaco-editor";
-import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
+import React, {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { type CodeBlocks } from "@prisma/client";
+import { type CodeBlocks, type Instructions } from "@prisma/client";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { debounce } from "throttle-debounce";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import CodeDiffSection from "~/components/ProjectsV2/CodeDiffSection";
+import InstructionsToolbar from "~/components/ProjectsV2/InstructionsToolbar";
 
 type Props = {
-  instructionsId: string;
+  instruction: Instructions;
   isAuthor: boolean;
+  isAdmin: boolean;
 };
-export default function CodeBlocks({ instructionsId, isAuthor }: Props) {
-  const [viewDiff, setViewDiff] = useState(false);
-  const { data: codeBlocks, isFetching } =
+export default function CodeBlocks({ instruction, isAuthor, isAdmin }: Props) {
+  const { data: codeBlocks = [], isFetching } =
     api.codeBlocks.getCodeBlocksForInstructionId.useQuery(
       {
-        instructionsId,
+        instructionsId: instruction.id,
       },
       {
         refetchOnWindowFocus: false,
@@ -30,6 +36,8 @@ export default function CodeBlocks({ instructionsId, isAuthor }: Props) {
         },
       }
     );
+
+  const [viewDiff, setViewDiff] = useState(false);
 
   const [focusedCodeBlock, setFocusedCodeBlock] = useState<
     CodeBlocks | undefined
@@ -148,7 +156,7 @@ export default function CodeBlocks({ instructionsId, isAuthor }: Props) {
 
   const addNewCodeBlock = () => {
     createNewCodeBlock({
-      instructionsId,
+      instructionsId: instruction.id,
     });
   };
 
@@ -237,6 +245,16 @@ export default function CodeBlocks({ instructionsId, isAuthor }: Props) {
             </div>
           )}
         </div>
+
+        {(isAuthor || isAdmin) && (
+          <InstructionsToolbar
+            viewDiff={viewDiff}
+            setViewDiff={setViewDiff}
+            currentInstruction={instruction}
+            codeBlocks={codeBlocks}
+          />
+        )}
+
         {viewDiff && focusedCodeBlock && (
           <CodeDiffSection codeBlock={focusedCodeBlock} isAuthor={isAuthor} />
         )}
