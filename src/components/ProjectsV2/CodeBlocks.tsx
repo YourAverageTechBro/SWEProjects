@@ -22,8 +22,14 @@ type Props = {
   instruction: Instructions;
   isAuthor: boolean;
   isAdmin: boolean;
+  isEditing: boolean;
 };
-export default function CodeBlocks({ instruction, isAuthor, isAdmin }: Props) {
+export default function CodeBlocks({
+  instruction,
+  isAuthor,
+  isAdmin,
+  isEditing,
+}: Props) {
   const { data: codeBlocks = [], isFetching } =
     api.codeBlocks.getCodeBlocksForInstructionId.useQuery(
       {
@@ -37,7 +43,7 @@ export default function CodeBlocks({ instruction, isAuthor, isAdmin }: Props) {
       }
     );
 
-  const [viewDiff, setViewDiff] = useState(false);
+  const [viewDiff, setViewDiff] = useState(!isEditing);
 
   const [focusedCodeBlock, setFocusedCodeBlock] = useState<
     CodeBlocks | undefined
@@ -246,7 +252,7 @@ export default function CodeBlocks({ instruction, isAuthor, isAdmin }: Props) {
           )}
         </div>
 
-        {(isAuthor || isAdmin) && (
+        {(isAuthor || isAdmin) && isEditing && (
           <InstructionsToolbar
             viewDiff={viewDiff}
             setViewDiff={setViewDiff}
