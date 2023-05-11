@@ -227,12 +227,12 @@ export default function EditProject({
 export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
-  log.info("[projectsv2/[projectId] Starting getServerSideProps");
+  log.info("[projectsv2]/[projectId] Starting getServerSideProps");
   const ssg = generateSSGHelper();
   const projectId = context.params?.projectId as string;
   if (!projectId) {
     log.error(
-      "[projectsv2/[projectId] No projectId found in getServerSideProps"
+      "[projectsv2]/[projectId] No projectId found in getServerSideProps"
     );
     return {
       props: {
@@ -249,7 +249,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   });
 
   if (!projectVariant) {
-    log.error("[projectsv2/[projectId] No project found in getServerSideProps");
+    log.error(
+      "[projectsv2]/[projectId] No project found in getServerSideProps"
+    );
     return {
       props: {
         projectInstructionTitles: [],
@@ -266,7 +268,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   if (!projectInstructionTitles) {
     log.error(
-      "[projectsv2/[projectId] No project instruction titles found in getServerSideProps"
+      "[projectsv2]/[projectId] No project instruction titles found in getServerSideProps"
     );
     return {
       props: {
@@ -293,7 +295,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   const isAuthor = userId === projectVariant.authorId;
 
-  log.info("[projectsv2/[projectId] Completed getServerSideProps");
+  log.info("[projectsv2]/[projectId] Completed getServerSideProps");
 
   return {
     props: {
