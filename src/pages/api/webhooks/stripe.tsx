@@ -159,6 +159,22 @@ const handleCheckoutSessionCompleted = async (
   const newProjectsUiEnabled =
     (await client.isFeatureEnabled("new-projects-ui", userId)) ?? true;
 
+  client.identify({
+    distinctId: userId,
+    properties: {
+      email: emailAddress,
+    },
+  });
+
+  client.capture({
+    distinctId: userId,
+    event: "Successfully Purchased Project",
+    properties: {
+      project_id: projectId,
+      time: new Date(),
+    },
+  });
+
   await client.shutdownAsync();
 
   await resend.sendEmail({
