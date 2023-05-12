@@ -46,7 +46,7 @@ const PreviewPage: NextPage<{
         price: stripePrice,
       });
     }
-  }, [[projectId, isSignedIn, user, stripePrice, canceledPayment]]);
+  }, [projectId, isSignedIn, user, stripePrice, canceledPayment]);
 
   useEffect(() => {
     if (isSignedIn && user) {

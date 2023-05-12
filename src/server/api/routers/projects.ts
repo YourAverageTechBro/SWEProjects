@@ -108,16 +108,22 @@ export const projectsRouter = createTRPCRouter({
       const { projectsId, frontendVariant, backendVariant } = input;
 
       if (!projectsId || !frontendVariant || !backendVariant) return null;
-
-      const result = await ctx.prisma.projectVariant.findMany({
+      const result = await ctx.prisma.projects.findUnique({
         where: {
-          projectsId,
-          frontendVariant,
-          backendVariant,
+          id: projectsId,
+        },
+        include: {
+          projectVariants: {
+            where: {
+              frontendVariant: input.frontendVariant,
+              backendVariant: input.backendVariant,
+            },
+          },
         },
       });
 
-      if (result.length !== 1) throw new TRPCError({ code: "CONFLICT" });
+      if (result?.projectVariants.length !== 1)
+        throw new TRPCError({ code: "CONFLICT" });
 
       ctx.log?.info("[projects] Completed endpoint", {
         userId: ctx.userId,
@@ -125,7 +131,7 @@ export const projectsRouter = createTRPCRouter({
         input: JSON.stringify(input),
       });
 
-      return result[0];
+      return result;
     }),
   getById: publicProcedure
     .input(

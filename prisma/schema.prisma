@@ -9,17 +9,18 @@ generator client {
 }
 
 model Projects {
-  id              String           @id @default(cuid())
-  createdAt       DateTime         @default(now())
-  authorId        String
-  projectVariants ProjectVariant[]
-  thumbnailUrl    String           @default("")
-  title           String           @default("") @db.LongText
-  description     String           @default("") @db.LongText
-  videoDemoUrl    String           @default("")
-  stripePriceId   String           @default("")
-  purchases       Purchases[]
-  preRequisites   String?          @default("") @db.LongText
+  id                String             @id @default(cuid())
+  createdAt         DateTime           @default(now())
+  authorId          String
+  projectVariants   ProjectVariant[]
+  thumbnailUrl      String             @default("")
+  title             String             @default("") @db.LongText
+  description       String             @default("") @db.LongText
+  videoDemoUrl      String             @default("")
+  stripePriceId     String             @default("")
+  purchases         Purchases[]
+  preRequisites     String?            @default("") @db.LongText
+  projectAccessType ProjectAccessType? @default(Free)
 
   @@index([authorId])
 }
@@ -104,4 +105,10 @@ enum FrontendVariant {
 enum BackendVariant {
   Supabase
   PlanetScale
+}
+
+enum ProjectAccessType {
+  Free
+  Paid
+  Sponsored
 }
