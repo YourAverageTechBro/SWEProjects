@@ -176,8 +176,13 @@ export const codeBlocksRouter = createTRPCRouter({
       const result = await ctx.prisma.instructions.findMany({
         where: {
           projectVariantId,
-          createdAt: {
-            lt: createdAt,
+          codeBlock: {
+            some: {
+              fileName,
+              createdAt: {
+                lt: createdAt,
+              },
+            },
           },
         },
         include: {
@@ -199,7 +204,9 @@ export const codeBlocksRouter = createTRPCRouter({
         result: JSON.stringify(result),
       });
 
-      return result.find((instruction) => instruction.codeBlock.length === 1)
-        ?.codeBlock[0];
+      return (
+        result.find((instruction) => instruction.codeBlock.length === 1)
+          ?.codeBlock[0]?.code ?? ""
+      );
     }),
 });

@@ -75,10 +75,7 @@ export default function CodeBlocks({
     {
       refetchOnWindowFocus: false,
       onSuccess: (data) => {
-        if (data) {
-          console.log("data.code: ", data.code);
-          setMostRecentFileDiff(data.code);
-        }
+        setMostRecentFileDiff(data ?? "");
       },
     }
   );
