@@ -32,7 +32,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse<Data>) {
       });
 
       const newProjectsUiEnabled =
-        (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+        (await client.isFeatureEnabled("new-projects-ui", userId)) ?? true;
 
       let cancelUrl = `${
         process.env.NEXT_PUBLIC_BASE_URL ?? ""
