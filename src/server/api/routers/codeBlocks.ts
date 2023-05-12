@@ -160,9 +160,9 @@ export const codeBlocksRouter = createTRPCRouter({
   getMostRecentDiffForFileName: publicProcedure
     .input(
       z.object({
-        fileName: z.string(),
-        createdAt: z.date(),
-        instructionsId: z.string(),
+        fileName: z.string().optional(),
+        createdAt: z.date().optional(),
+        projectVariantId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -171,14 +171,26 @@ export const codeBlocksRouter = createTRPCRouter({
         function: "getMostRecentDiffForFileName",
         input: JSON.stringify(input),
       });
-      const { fileName, createdAt, instructionsId } = input;
-      const result = await ctx.prisma.codeBlocks.findMany({
+      const { fileName, createdAt, projectVariantId } = input;
+      if (!fileName || !createdAt || !projectVariantId) return;
+      const result = await ctx.prisma.instructions.findMany({
         where: {
-          fileName: fileName,
-          createdAt: {
-            lte: createdAt,
+          projectVariantId,
+          codeBlock: {
+            some: {
+              fileName,
+              createdAt: {
+                lt: createdAt,
+              },
+            },
           },
-          instructionsId: instructionsId,
+        },
+        include: {
+          codeBlock: {
+            where: {
+              fileName,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -192,6 +204,9 @@ export const codeBlocksRouter = createTRPCRouter({
         result: JSON.stringify(result),
       });
 
-      return result[0];
+      return (
+        result.find((instruction) => instruction.codeBlock.length === 1)
+          ?.codeBlock[0]?.code ?? ""
+      );
     }),
 });

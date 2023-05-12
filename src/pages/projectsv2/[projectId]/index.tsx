@@ -24,6 +24,7 @@ type Props = {
   numberOfPreviewPages: number;
   projectAccessType: ProjectAccessType;
   stripePriceId: string;
+  projectVariantId?: string;
 };
 
 export default function EditProject({
@@ -33,6 +34,7 @@ export default function EditProject({
   numberOfPreviewPages,
   projectAccessType,
   stripePriceId,
+  projectVariantId,
 }: Props) {
   const user = useUser();
   const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
@@ -199,6 +201,7 @@ export default function EditProject({
             />
           </div>
           {instruction.hasCodeBlocks &&
+            projectVariantId &&
             (isFreeProject || purchasedProject || !isAtPagePreviewLimit) && (
               <div className={"w-2/3"}>
                 <CodeBlocks
@@ -206,6 +209,7 @@ export default function EditProject({
                   isAuthor={isAuthor}
                   isAdmin={isAdmin}
                   isEditing={isEditing}
+                  projectVariantId={projectVariantId}
                 />
               </div>
             )}
@@ -402,6 +406,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       numberOfPreviewPages,
       projectAccessType: projectAccessType,
       stripePriceId: project.stripePriceId,
+      projectVariantId: projectVariant.id,
     },
   };
 };

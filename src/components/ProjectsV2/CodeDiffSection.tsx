@@ -1,22 +1,20 @@
-import { type CodeBlocks } from "@prisma/client";
 import {
   DiffEditor,
   type Monaco,
   type MonacoDiffEditor,
 } from "@monaco-editor/react";
 import { useCallback } from "react";
-import { api } from "~/utils/api";
 
 type Props = {
-  codeBlock: CodeBlocks;
+  originalCode: string;
+  modifiedCode: string;
   isAuthor: boolean;
 };
-export default function CodeDiffSection({ codeBlock, isAuthor }: Props) {
-  const { data } = api.codeBlocks.getMostRecentDiffForFileName.useQuery({
-    fileName: codeBlock.fileName,
-    createdAt: codeBlock.createdAt,
-    instructionsId: codeBlock.instructionsId,
-  });
+export default function CodeDiffSection({
+  originalCode,
+  modifiedCode,
+  isAuthor,
+}: Props) {
   const handleDiffEditorDidMount = useCallback(
     (editor: MonacoDiffEditor, monaco: Monaco) => {
       monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -27,13 +25,14 @@ export default function CodeDiffSection({ codeBlock, isAuthor }: Props) {
     },
     []
   );
+
   return (
     <DiffEditor
       height={"100vh"}
       theme="vs-dark"
       language={"typescript"}
-      original={data?.code}
-      modified={codeBlock.code}
+      original={originalCode}
+      modified={modifiedCode}
       onMount={handleDiffEditorDidMount}
       options={{
         renderSideBySide: false,

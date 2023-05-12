@@ -23,12 +23,14 @@ type Props = {
   isAuthor: boolean;
   isAdmin: boolean;
   isEditing: boolean;
+  projectVariantId: string;
 };
 export default function CodeBlocks({
   instruction,
   isAuthor,
   isAdmin,
   isEditing,
+  projectVariantId,
 }: Props) {
   const { data: codeBlocks = [], isFetching } =
     api.codeBlocks.getCodeBlocksForInstructionId.useQuery(
@@ -42,6 +44,7 @@ export default function CodeBlocks({
         },
       }
     );
+  const [mostRecentFileDiff, setMostRecentFileDiff] = useState("");
 
   const [viewDiff, setViewDiff] = useState(!isEditing);
 
@@ -61,6 +64,20 @@ export default function CodeBlocks({
       updateCodeBlock({ codeBlockId, code, fileName });
     }),
     []
+  );
+
+  api.codeBlocks.getMostRecentDiffForFileName.useQuery(
+    {
+      fileName: focusedCodeBlock?.fileName,
+      createdAt: focusedCodeBlock?.createdAt,
+      projectVariantId,
+    },
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setMostRecentFileDiff(data ?? "");
+      },
+    }
   );
 
   useEffect(() => {
@@ -264,7 +281,11 @@ export default function CodeBlocks({
         )}
 
         {viewDiff && focusedCodeBlock && (
-          <CodeDiffSection codeBlock={focusedCodeBlock} isAuthor={isAuthor} />
+          <CodeDiffSection
+            originalCode={mostRecentFileDiff}
+            modifiedCode={focusedCodeBlock.code}
+            isAuthor={isAuthor}
+          />
         )}
         {!viewDiff && focusedCodeBlock && (
           <Editor
