@@ -3,19 +3,36 @@ import { useRouter } from "next/router";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
-import { type GetStaticProps, type NextPage } from "next";
+import { type GetServerSideProps } from "next";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
-import { type Projects, type Purchases } from "@prisma/client";
+import {
+  ProjectAccessType,
+  type Projects,
+  type Purchases,
+} from "@prisma/client";
 import { api } from "~/utils/api";
 import { log } from "next-axiom";
 import { usePostHog } from "posthog-js/react";
+import { PostHog } from "posthog-node";
+import { getAuth } from "@clerk/nextjs/server";
+import Link from "next/link";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
-const PreviewPage: NextPage<{
-  project: (Projects & { purchases: Purchases[] }) | null;
+type ProjectsWithCreatedAtString = Omit<Projects, "createdAt"> & {
+  createdAt: string;
+};
+
+type Props = {
+  project: (ProjectsWithCreatedAtString & { purchases: Purchases[] }) | null;
   stripePrice: number | undefined;
-}> = ({ project, stripePrice }) => {
+  isNewProjectsUiEnabled: boolean;
+};
+export default function PreviewPage({
+  project,
+  stripePrice,
+  isNewProjectsUiEnabled,
+}: Props) {
   const router = useRouter();
   const [redirectUrl, setRedirectUrl] = useState("");
   const { isSignedIn, user } = useUser();
@@ -68,6 +85,63 @@ const PreviewPage: NextPage<{
     (purchasedProject) => purchasedProject.id === project?.id
   );
 
+  const oldPreviewUi = (
+    <>
+      {user?.id && !userHasPurchasedProject && (
+        <form
+          action={`/api/checkout_sessions?userId=${
+            user.id ?? ""
+          }&stripePriceId=${project.stripePriceId ?? ""}&projectId=${
+            project.id
+          }`}
+          method="POST"
+          className={"w-full"}
+        >
+          <button
+            type="submit"
+            role="link"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
+            onClick={() => {
+              setIsRedirectingToStripe(true);
+              postHog?.capture("Clicked Buy Now", {
+                distinct_id: user.id,
+                project_id: projectId,
+                price: stripePrice,
+              });
+            }}
+          >
+            {isRedirectingToStripe && (
+              <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
+            )}
+            Get The Coding Tutorial Now!
+          </button>
+        </form>
+      )}
+      {!user?.id && (
+        <SignUpButton mode={"modal"} redirectUrl={redirectUrl}>
+          <button
+            type="submit"
+            role="link"
+            className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Sign Up To Get The Coding Tutorial
+          </button>
+        </SignUpButton>
+      )}
+    </>
+  );
+
+  const newPreviewUi = (
+    <Link href={`/projectsv2/${project.id}`}>
+      <button className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        {" "}
+        {project.projectAccessType === ProjectAccessType.Free
+          ? " View the FREE coding tutorial"
+          : "Check out the tutorial"}
+      </button>
+    </Link>
+  );
+
   return (
     <>
       <Header />
@@ -113,57 +187,19 @@ const PreviewPage: NextPage<{
               <p className={"mb-8 text-center text-6xl font-bold"}>
                 {project.title}
               </p>
-              {!userHasPurchasedProject && stripePrice && (
-                <p
-                  className={
-                    "mb-8 text-center text-6xl font-bold text-green-500"
-                  }
-                >
-                  {`$${stripePrice}`}
-                </p>
-              )}
+              {!isNewProjectsUiEnabled &&
+                !userHasPurchasedProject &&
+                stripePrice && (
+                  <p
+                    className={
+                      "mb-8 text-center text-6xl font-bold text-green-500"
+                    }
+                  >
+                    {`$${stripePrice}`}
+                  </p>
+                )}
               {!stripePrice && <LoadingSpinner />}
-              {user?.id && !userHasPurchasedProject && (
-                <form
-                  action={`/api/checkout_sessions?userId=${
-                    user.id ?? ""
-                  }&stripePriceId=${project.stripePriceId ?? ""}&projectId=${
-                    project.id
-                  }`}
-                  method="POST"
-                  className={"w-full"}
-                >
-                  <button
-                    type="submit"
-                    role="link"
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
-                    onClick={() => {
-                      setIsRedirectingToStripe(true);
-                      postHog?.capture("Clicked Buy Now", {
-                        distinct_id: user.id,
-                        project_id: projectId,
-                        price: stripePrice,
-                      });
-                    }}
-                  >
-                    {isRedirectingToStripe && (
-                      <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
-                    )}
-                    Get The Coding Tutorial Now!
-                  </button>
-                </form>
-              )}
-              {!user?.id && (
-                <SignUpButton mode={"modal"} redirectUrl={redirectUrl}>
-                  <button
-                    type="submit"
-                    role="link"
-                    className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
-                    Sign Up To Get The Coding Tutorial
-                  </button>
-                </SignUpButton>
-              )}
+              {isNewProjectsUiEnabled ? newPreviewUi : oldPreviewUi}
               {user?.id && userHasPurchasedProject && (
                 <button
                   role="link"
@@ -212,9 +248,11 @@ const PreviewPage: NextPage<{
       </div>
     </>
   );
-};
+}
 
-export const getStaticProps: GetStaticProps = async (context) => {
+export const getServerSideProps: GetServerSideProps<Props> = async (
+  context
+) => {
   log.info("[projects/preview/[projectId] Starting getStaticProps");
   const ssg = generateSSGHelper();
 
@@ -236,23 +274,28 @@ export const getStaticProps: GetStaticProps = async (context) => {
     stripePrice = await ssg.stripe.getPrices.fetch({ priceId });
   }
 
+  const { userId } = getAuth(context.req);
+
+  let isNewProjectsUiEnabled = false;
+  if (userId) {
+    const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
+    });
+
+    isNewProjectsUiEnabled =
+      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+
+    await client.shutdownAsync();
+  }
+
   return {
     props: {
-      trpcState: ssg.dehydrate(),
-      project: { ...project, createdAt: null },
+      project: {
+        ...project,
+        createdAt: JSON.stringify(project.createdAt),
+      },
       stripePrice,
+      isNewProjectsUiEnabled,
     },
   };
 };
-
-export const getStaticPaths = () => {
-  return {
-    paths: [
-      "/projects/preview/clgk8x5w1000cvrvb86b13ut7",
-      "/projects/preview/clh7qgfw30000vr1re1505ime",
-    ],
-    fallback: false,
-  };
-};
-
-export default PreviewPage;
