@@ -369,10 +369,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     const numberOfPreviewPagesPayload = (await client.getFeatureFlagPayload(
       "number_of_preview_pages",
       userId
-    )) as { number_of_preview_pages: number };
+    )) as { number_of_preview_pages: number } | undefined;
 
     numberOfPreviewPages =
-      numberOfPreviewPagesPayload.number_of_preview_pages ?? 5;
+      numberOfPreviewPagesPayload?.number_of_preview_pages ?? 5;
 
     await client.shutdownAsync();
   }
