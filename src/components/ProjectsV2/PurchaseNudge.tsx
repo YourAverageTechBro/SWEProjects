@@ -58,10 +58,15 @@ export default function PurchaseNudge({ projectId, stripePriceId }: Props) {
             className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
             onClick={() => {
               setIsRedirectingToStripe(true);
+              postHog?.identify(user?.id, {
+                name: user?.fullName,
+                email: user?.primaryEmailAddress?.emailAddress,
+              });
               postHog?.capture("Clicked Buy Now", {
                 distinct_id: user.id,
                 project_id: projectId,
                 price,
+                source: "purchase_nudge_page",
               });
             }}
           >
