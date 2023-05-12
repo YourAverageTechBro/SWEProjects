@@ -360,7 +360,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     });
 
     isQAFeatureEnabled =
-      (await client.isFeatureEnabled("q-a-feature", userId)) ?? false;
+      (await client.isFeatureEnabled("q-a-feature", userId)) ?? true;
 
     const numberOfPreviewPagesPayload = (await client.getFeatureFlagPayload(
       "number_of_preview_pages",
