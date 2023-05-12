@@ -157,7 +157,7 @@ const handleCheckoutSessionCompleted = async (
   });
 
   const newProjectsUiEnabled =
-    (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+    (await client.isFeatureEnabled("new-projects-ui", userId)) ?? true;
 
   await client.shutdownAsync();
 

@@ -1,6 +1,7 @@
 import type { NextApiResponse } from "next";
 import { type AxiomAPIRequest, withAxiom } from "next-axiom";
 import type Stripe from "stripe";
+import { PostHog } from "posthog-node";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -12,17 +13,38 @@ type Data = {
 
 async function handler(req: AxiomAPIRequest, res: NextApiResponse<Data>) {
   if (req.method === "POST") {
-    const { userId, projectId, stripePriceId } = req.query as {
+    const { userId, projectId, stripePriceId, instructionId } = req.query as {
       userId: string;
       projectId: string;
       stripePriceId: string;
+      instructionId: string;
     };
     try {
       req.log.info(`[api/checkout_sessions] Starting endpoint`, {
         userId,
         projectId,
         stripePriceId,
+        instructionId,
       });
+
+      const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
+        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
+      });
+
+      const newProjectsUiEnabled =
+        (await client.isFeatureEnabled("new-projects-ui", userId)) ?? true;
+
+      let cancelUrl = `${
+        process.env.NEXT_PUBLIC_BASE_URL ?? ""
+      }/projects/preview/${projectId}?canceledPayment=true`;
+
+      if (newProjectsUiEnabled) {
+        cancelUrl = `${
+          process.env.NEXT_PUBLIC_BASE_URL ?? ""
+        }/projectsv2/${projectId}?instructionId=${instructionId}`;
+      }
+
+      await client.shutdownAsync();
       // Create Checkout Sessions from body params.
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
       const session: Stripe.Checkout.Session =
@@ -39,9 +61,7 @@ async function handler(req: AxiomAPIRequest, res: NextApiResponse<Data>) {
           success_url: `${
             process.env.NEXT_PUBLIC_BASE_URL ?? ""
           }/projects/successfulPurchase?userId=${userId}&projectId=${projectId}`,
-          cancel_url: `${
-            process.env.NEXT_PUBLIC_BASE_URL ?? ""
-          }/projects/preview/${projectId}?canceledPayment=true`,
+          cancel_url: cancelUrl,
           automatic_tax: { enabled: true },
         });
 

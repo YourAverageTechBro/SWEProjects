@@ -8,10 +8,12 @@ import { api } from "~/utils/api";
 type Props = {
   projectId: string;
   stripePriceId: string;
+  instructionId: string;
 };
 export default function QuestionsPurchaseNudge({
   projectId,
   stripePriceId,
+  instructionId,
 }: Props) {
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const postHog = usePostHog();
@@ -45,7 +47,9 @@ export default function QuestionsPurchaseNudge({
         <form
           action={`/api/checkout_sessions?userId=${
             user.id ?? ""
-          }&stripePriceId=${stripePriceId ?? ""}&projectId=${projectId}`}
+          }&stripePriceId=${
+            stripePriceId ?? ""
+          }&projectId=${projectId}&instructionId=${instructionId}`}
           method="POST"
           className={"w-full"}
         >
