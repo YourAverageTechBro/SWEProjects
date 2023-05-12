@@ -199,7 +199,9 @@ export default function PreviewPage({
                   </p>
                 )}
               {!stripePrice && <LoadingSpinner />}
-              {isNewProjectsUiEnabled ? newPreviewUi : oldPreviewUi}
+              {isNewProjectsUiEnabled && !userHasPurchasedProject
+                ? newPreviewUi
+                : oldPreviewUi}
               {user?.id && userHasPurchasedProject && (
                 <button
                   role="link"
@@ -283,7 +285,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     });
 
     isNewProjectsUiEnabled =
-      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? true;
 
     await client.shutdownAsync();
   }
