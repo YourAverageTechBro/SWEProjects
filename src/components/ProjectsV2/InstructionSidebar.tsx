@@ -104,6 +104,7 @@ export default function InstructionLeftSidebar({
             <PurchaseNudge
               projectId={projectId}
               stripePriceId={stripePriceId}
+              instructionId={instruction.id}
             />
           )}
 
@@ -122,6 +123,7 @@ export default function InstructionLeftSidebar({
               <QuestionsPurchaseNudge
                 projectId={projectId}
                 stripePriceId={stripePriceId}
+                instructionId={instruction.id}
               />
             </div>
           )}
