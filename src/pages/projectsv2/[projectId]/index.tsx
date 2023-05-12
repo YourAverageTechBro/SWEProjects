@@ -356,7 +356,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   const { userId } = getAuth(context.req);
 
-  let isQAFeatureEnabled = false;
+  let isQAFeatureEnabled = true;
   let numberOfPreviewPages = 5;
   if (userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
