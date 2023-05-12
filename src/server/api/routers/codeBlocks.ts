@@ -1,4 +1,8 @@
-import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  privateProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import { z } from "zod";
 
 export const codeBlocksRouter = createTRPCRouter({
@@ -129,7 +133,7 @@ export const codeBlocksRouter = createTRPCRouter({
 
       return result;
     }),
-  getCodeBlocksForInstructionId: privateProcedure
+  getCodeBlocksForInstructionId: publicProcedure
     .input(z.object({ instructionsId: z.string() }))
     .query(async ({ ctx, input }) => {
       ctx.log?.info("[codeBlocks] Starting endpoint", {
@@ -153,7 +157,7 @@ export const codeBlocksRouter = createTRPCRouter({
 
       return result;
     }),
-  getMostRecentDiffForFileName: privateProcedure
+  getMostRecentDiffForFileName: publicProcedure
     .input(
       z.object({
         fileName: z.string(),

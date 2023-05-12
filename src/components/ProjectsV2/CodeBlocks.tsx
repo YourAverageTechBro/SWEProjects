@@ -225,15 +225,17 @@ export default function CodeBlocks({
                 ) : (
                   <div className={"flex items-center gap-2"}>
                     {codeBlock.fileName}
-                    <button
-                      className={"hover:bg-gray-200"}
-                      onClick={(e) => {
-                        deleteCodeBlock({ codeBlockId: codeBlock.id });
-                        e.stopPropagation();
-                      }}
-                    >
-                      <XMarkIcon className={"h-4 w-4 text-red-500"} />
-                    </button>
+                    {(isAdmin || isAuthor) && (
+                      <button
+                        className={"hover:bg-gray-200"}
+                        onClick={(e) => {
+                          deleteCodeBlock({ codeBlockId: codeBlock.id });
+                          e.stopPropagation();
+                        }}
+                      >
+                        <XMarkIcon className={"h-4 w-4 text-red-500"} />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

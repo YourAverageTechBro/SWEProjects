@@ -1,5 +1,9 @@
 import { useRouter } from "next/router";
-import { BackendVariant, FrontendVariant } from "@prisma/client";
+import {
+  BackendVariant,
+  FrontendVariant,
+  ProjectAccessType,
+} from "@prisma/client";
 import React, { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
@@ -17,28 +21,45 @@ type Props = {
   projectInstructionTitles: { id: string; title: string }[];
   isQAFeatureEnabled: boolean;
   isAuthor: boolean;
+  numberOfPreviewPages: number;
+  projectAccessType: ProjectAccessType;
+  stripePriceId: string;
 };
 
 export default function EditProject({
   isQAFeatureEnabled,
   projectInstructionTitles,
   isAuthor,
+  numberOfPreviewPages,
+  projectAccessType,
+  stripePriceId,
 }: Props) {
   const user = useUser();
   const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
-  const { instructionId, projectId, successfullyPurchased } = router.query as {
-    instructionId: string;
+  const {
+    instructionId = projectInstructionTitles[0]?.id,
+    projectId,
+    successfullyPurchased,
+  } = router.query as {
+    instructionId?: string;
     projectId: string;
     successfullyPurchased?: string;
   };
 
+  const indexOfCurrentInstruction = projectInstructionTitles.findIndex(
+    (instruction) => instruction.id === instructionId
+  );
+
+  const isAtPagePreviewLimit =
+    indexOfCurrentInstruction >= numberOfPreviewPages;
+
   const { data: instruction, isFetching: isFetchingInstruction } =
     api.instructions.getById.useQuery(
       {
-        instructionId,
+        instructionId: instructionId,
       },
       {
         refetchOnWindowFocus: false,
@@ -63,10 +84,13 @@ export default function EditProject({
     // instruction not found
     if (currentInstructionIndex === -1) {
       // TODO (add sentry alert if instruction index is not found)
-      log.error(`[projectsv2] Instruction id index not found`, {
-        instructionId,
-        projectId,
-      });
+      log.error(
+        `[projectsv2][findPreviousInstruction] Instruction id index not found`,
+        {
+          instructionId,
+          projectId,
+        }
+      );
       return null;
     }
 
@@ -83,10 +107,13 @@ export default function EditProject({
     // instruction not found
     if (currentInstructionIndex === -1) {
       // TODO (add sentry alert if instruction index is not found)
-      log.error(`[projectsv2] Instruction id index not found`, {
-        instructionId,
-        projectId,
-      });
+      log.error(
+        `[projectsv2][findNextInstruction] Instruction id index not found`,
+        {
+          instructionId,
+          projectId,
+        }
+      );
       return null;
     }
 
@@ -100,11 +127,13 @@ export default function EditProject({
   if (isFetchingPurchasedProjects || isFetchingInstruction)
     return <LoadingSpinner />;
 
-  const userHasPurchasedProject = purchasedProjects?.some(
+  const purchasedProject = purchasedProjects?.find(
     (purchasedProject) => purchasedProject.id === projectId
   );
-  if (!userHasPurchasedProject && !isAdmin) return <div> 404 </div>;
+
   if (!instruction) return <div> 404 </div>;
+
+  const isFreeProject = projectAccessType === ProjectAccessType.Free;
 
   const previousInstruction = findPreviousInstruction();
   const nextInstruction = findNextInstruction();
@@ -146,7 +175,14 @@ export default function EditProject({
           )}
         </div>
         <div className={"flex h-[80vh]"}>
-          <div className={`${instruction.hasCodeBlocks ? "w-1/3" : "w-full"}`}>
+          <div
+            className={`${
+              instruction.hasCodeBlocks &&
+              (isFreeProject || purchasedProject || !isAtPagePreviewLimit)
+                ? "w-1/3"
+                : "w-full"
+            }`}
+          >
             <InstructionSidebar
               isEditing={isEditing}
               isAuthor={isAdmin}
@@ -154,18 +190,25 @@ export default function EditProject({
               projectInstructionTitles={projectInstructionTitles}
               instruction={instruction}
               projectId={projectId}
+              isAtPagePreviewLimit={isAtPagePreviewLimit}
+              hasPurchasedProject={
+                purchasedProject !== null && purchasedProject !== undefined
+              }
+              stripePriceId={stripePriceId}
+              projectAccessType={projectAccessType}
             />
           </div>
-          {instruction.hasCodeBlocks && (
-            <div className={"w-2/3"}>
-              <CodeBlocks
-                instruction={instruction}
-                isAuthor={isAuthor}
-                isAdmin={isAdmin}
-                isEditing={isEditing}
-              />
-            </div>
-          )}
+          {instruction.hasCodeBlocks &&
+            (isFreeProject || purchasedProject || !isAtPagePreviewLimit) && (
+              <div className={"w-2/3"}>
+                <CodeBlocks
+                  instruction={instruction}
+                  isAuthor={isAuthor}
+                  isAdmin={isAdmin}
+                  isEditing={isEditing}
+                />
+              </div>
+            )}
         </div>
 
         <div className={"flex justify-end gap-4 pb-8"}>
@@ -239,16 +282,23 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
         isAuthor: false,
+        numberOfPreviewPages: 0,
+        projectAccessType: ProjectAccessType.Paid,
+        stripePriceId: "",
       },
     };
   }
-  const projectVariant = await ssg.projects.getProjectVariantId.fetch({
+  const project = await ssg.projects.getProjectVariantId.fetch({
     projectsId: projectId,
     frontendVariant: FrontendVariant.NextJS,
     backendVariant: BackendVariant.Supabase,
   });
 
-  if (!projectVariant) {
+  if (
+    !project ||
+    project.projectVariants.length === 0 ||
+    project.projectVariants.length > 1
+  ) {
     log.error(
       "[projectsv2]/[projectId] No project found in getServerSideProps"
     );
@@ -257,6 +307,24 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
         isAuthor: false,
+        numberOfPreviewPages: 0,
+        projectAccessType: ProjectAccessType.Paid,
+        stripePriceId: "",
+      },
+    };
+  }
+
+  const projectVariant = project.projectVariants[0];
+
+  if (!projectVariant) {
+    return {
+      props: {
+        projectInstructionTitles: [],
+        isQAFeatureEnabled: false,
+        isAuthor: false,
+        numberOfPreviewPages: 0,
+        projectAccessType: ProjectAccessType.Paid,
+        stripePriceId: "",
       },
     };
   }
@@ -275,6 +343,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         projectInstructionTitles: [],
         isQAFeatureEnabled: false,
         isAuthor: false,
+        numberOfPreviewPages: 0,
+        projectAccessType: ProjectAccessType.Paid,
+        stripePriceId: "",
       },
     };
   }
@@ -282,7 +353,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   const { userId } = getAuth(context.req);
 
   let isQAFeatureEnabled = false;
-  if (userId && process.env.NODE_ENV === "production") {
+  let numberOfPreviewPages = 5;
+  if (userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
       host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
     });
@@ -290,10 +362,33 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     isQAFeatureEnabled =
       (await client.isFeatureEnabled("q-a-feature", userId)) ?? false;
 
+    const numberOfPreviewPagesPayload = (await client.getFeatureFlagPayload(
+      "number_of_preview_pages",
+      userId
+    )) as { number_of_preview_pages: number };
+
+    numberOfPreviewPages =
+      numberOfPreviewPagesPayload.number_of_preview_pages ?? 5;
+
     await client.shutdownAsync();
   }
 
   const isAuthor = userId === projectVariant.authorId;
+
+  const projectAccessType = project.projectAccessType;
+
+  if (!projectAccessType) {
+    return {
+      props: {
+        projectInstructionTitles: [],
+        isQAFeatureEnabled: false,
+        isAuthor: false,
+        numberOfPreviewPages: 0,
+        projectAccessType: ProjectAccessType.Paid,
+        stripePriceId: "",
+      },
+    };
+  }
 
   log.info("[projectsv2]/[projectId] Completed getServerSideProps");
 
@@ -304,6 +399,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       projectInstructionTitles: projectInstructionTitles ?? [],
       isQAFeatureEnabled,
       isAuthor,
+      numberOfPreviewPages,
+      projectAccessType: projectAccessType,
+      stripePriceId: project.stripePriceId,
     },
   };
 };

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import QuestionsPlaceholder from "~/components/Images/Questions";
 import TextExplanationComponent from "~/components/ProjectsV2/TextExplanationComponent";
-import { type Instructions } from "@prisma/client";
+import { type Instructions, ProjectAccessType } from "@prisma/client";
 import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
 import { useRouter } from "next/router";
+import QuestionsPurchaseNudge from "~/components/ProjectsV2/QuestionsPurchaseNudge";
+import PurchaseNudge from "~/components/ProjectsV2/PurchaseNudge";
 
 enum SideBarContent {
   TABLE_OF_CONTENTS = "Table of Contents",
@@ -19,6 +21,10 @@ type Props = {
   projectInstructionTitles: { id: string; title: string }[];
   instruction: Instructions;
   projectId: string;
+  isAtPagePreviewLimit: boolean;
+  hasPurchasedProject: boolean;
+  stripePriceId: string;
+  projectAccessType: ProjectAccessType;
 };
 export default function InstructionLeftSidebar({
   isEditing,
@@ -27,11 +33,17 @@ export default function InstructionLeftSidebar({
   projectInstructionTitles,
   instruction,
   projectId,
+  isAtPagePreviewLimit,
+  hasPurchasedProject,
+  stripePriceId,
+  projectAccessType,
 }: Props) {
+  const isFreeProject = projectAccessType === ProjectAccessType.Free;
   const router = useRouter();
   const [focusedSideBarContent, setFocusedSideBarContent] = useState(
     SideBarContent.INSTRUCTIONS
   );
+
   return (
     <div className={"relative h-full overflow-y-hidden"}>
       <div className={"flex w-full justify-center"}>
@@ -74,18 +86,43 @@ export default function InstructionLeftSidebar({
               </button>
             );
           })}
-        {focusedSideBarContent === SideBarContent.INSTRUCTIONS && (
-          <TextExplanationComponent
-            instructionId={instruction.id}
-            readOnly={!isEditing}
-            isAuthor={isAuthor}
-            initialExplanation={instruction.explanation}
-          />
-        )}
+
+        {focusedSideBarContent === SideBarContent.INSTRUCTIONS &&
+          (hasPurchasedProject || !isAtPagePreviewLimit || isFreeProject) && (
+            <TextExplanationComponent
+              instructionId={instruction.id}
+              readOnly={!isEditing}
+              isAuthor={isAuthor}
+              initialExplanation={instruction.explanation}
+            />
+          )}
+
+        {focusedSideBarContent === SideBarContent.INSTRUCTIONS &&
+          !hasPurchasedProject &&
+          isAtPagePreviewLimit &&
+          !isFreeProject && (
+            <PurchaseNudge
+              projectId={projectId}
+              stripePriceId={stripePriceId}
+            />
+          )}
+
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
-          isQAFeatureEnabled && (
+          isQAFeatureEnabled &&
+          hasPurchasedProject && (
             <div className={"h-full w-full overflow-scroll"}>
               <QuestionAndAnswerComponent instructionsId={instruction.id} />
+            </div>
+          )}
+
+        {focusedSideBarContent === SideBarContent.QUESTIONS &&
+          isQAFeatureEnabled &&
+          !hasPurchasedProject && (
+            <div className={"h-full w-full overflow-scroll"}>
+              <QuestionsPurchaseNudge
+                projectId={projectId}
+                stripePriceId={stripePriceId}
+              />
             </div>
           )}
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
