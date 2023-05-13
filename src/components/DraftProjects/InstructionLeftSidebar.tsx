@@ -1,6 +1,5 @@
 import { useState } from "react";
 import DraftInstructionalTextComponent from "~/components/DraftProjects/DraftInstructionalTextComponent";
-import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/QuestionAndAnswerComponent";
 import QuestionsPlaceholder from "~/components/Images/Questions";
 
 enum SideBarContent {
@@ -54,12 +53,6 @@ export default function InstructionLeftSidebar({
             isAuthor={isAuthor}
           />
         )}
-        {focusedSideBarContent === SideBarContent.QUESTIONS &&
-          isQAFeatureEnabled && (
-            <div className={"h-full w-full overflow-scroll"}>
-              <QuestionAndAnswerComponent />
-            </div>
-          )}
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
           !isQAFeatureEnabled && (
             <div

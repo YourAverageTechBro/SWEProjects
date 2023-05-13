@@ -4,17 +4,15 @@ import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { SignedIn, SignedOut, SignUpButton, useAuth } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
-import { useRouter } from "next/router";
 
-export default function QuestionBox() {
+type Props = {
+  instructionId: string;
+  projectId: string;
+};
+export default function QuestionBox({ instructionId, projectId }: Props) {
   const [title, setTitle] = useState<string | undefined>("");
   const [question, setQuestion] = useState<string | undefined>("");
   const { userId } = useAuth();
-  const router = useRouter();
-  const { projectId, instructionId } = router.query as {
-    projectId: string;
-    instructionId: string;
-  };
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.questions.create.useMutation({

@@ -4,7 +4,7 @@ import {
   FrontendVariant,
   ProjectAccessType,
 } from "@prisma/client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
@@ -41,20 +41,15 @@ export default function EditProject({
   const { userId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
-  const { instructionId, projectId, successfullyPurchased } = router.query as {
+  const {
+    instructionId = projectInstructionTitles[0]?.id,
+    projectId,
+    successfullyPurchased,
+  } = router.query as {
     instructionId?: string;
     projectId: string;
     successfullyPurchased?: string;
   };
-
-  useEffect(() => {
-    const defaultInstructionId = projectInstructionTitles[0]?.id;
-    if (!instructionId && defaultInstructionId) {
-      void router.replace(
-        `${router.asPath}?instructionId=${defaultInstructionId}`
-      );
-    }
-  }, []);
 
   const indexOfCurrentInstruction = projectInstructionTitles.findIndex(
     (instruction) => instruction.id === instructionId
