@@ -4,19 +4,21 @@ import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { type Dispatch, type SetStateAction } from "react";
 import { type Questions } from "@prisma/client";
+import { useRouter } from "next/router";
 
 type Props = {
-  instructionsId: string;
   setFocusedQuestion: Dispatch<SetStateAction<Questions | undefined>>;
 };
-export default function QuestionsList({
-  instructionsId,
-  setFocusedQuestion,
-}: Props) {
+export default function QuestionsList({ setFocusedQuestion }: Props) {
+  const router = useRouter();
+  const { instructionId } = router.query as {
+    instructionId: string;
+  };
+
   const { data, isFetching } =
     api.questions.getAllQuestionsForInstruction.useQuery(
       {
-        instructionsId,
+        instructionsId: instructionId,
       },
       {
         refetchOnWindowFocus: false,

@@ -2,16 +2,19 @@ import MdEditor from "~/components/Common/MdEditor/MdEditor";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignUpButton, useAuth } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import { useRouter } from "next/router";
 
-type Props = {
-  instructionsId: string;
-};
-export default function QuestionBox({ instructionsId }: Props) {
+export default function QuestionBox() {
   const [title, setTitle] = useState<string | undefined>("");
   const [question, setQuestion] = useState<string | undefined>("");
   const { userId } = useAuth();
+  const router = useRouter();
+  const { projectId, instructionId } = router.query as {
+    projectId: string;
+    instructionId: string;
+  };
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.questions.create.useMutation({
@@ -19,7 +22,7 @@ export default function QuestionBox({ instructionsId }: Props) {
       setTitle("");
       setQuestion("");
       void ctx.questions.getAllQuestionsForInstruction.invalidate({
-        instructionsId,
+        instructionsId: instructionId,
       });
     },
     onError: (e) => {
@@ -34,7 +37,7 @@ export default function QuestionBox({ instructionsId }: Props) {
 
   const postQuestion = () => {
     if (title && question && userId) {
-      mutate({ userId, instructionsId, question, title });
+      mutate({ userId, instructionsId: instructionId, question, title });
     }
   };
 
@@ -70,16 +73,32 @@ export default function QuestionBox({ instructionsId }: Props) {
           height={"150px"}
         />
       </div>
-      <button
-        type="button"
-        className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        onClick={postQuestion}
-      >
-        {isLoading && (
-          <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
-        )}{" "}
-        Submit Question
-      </button>
+      <SignedIn>
+        <button
+          type="button"
+          className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          onClick={postQuestion}
+        >
+          {isLoading && (
+            <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
+          )}{" "}
+          Submit Question
+        </button>
+      </SignedIn>
+      <SignedOut>
+        <SignUpButton
+          mode={"modal"}
+          redirectUrl={`/projectsv2/${projectId}?instructionId=${instructionId}`}
+        >
+          <button
+            type="submit"
+            role="link"
+            className="mt-4 w-full rounded-full bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Sign Up To Ask A Question
+          </button>
+        </SignUpButton>
+      </SignedOut>
     </div>
   );
 }
