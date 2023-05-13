@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { type Dispatch, type SetStateAction } from "react";
 import { type Questions } from "@prisma/client";
+import EmptyComments from "~/components/Images/EmptyComments";
 
 type Props = {
   instructionId: string;
@@ -23,13 +24,27 @@ export default function QuestionsList({
       }
     );
 
-  if (isFetching)
+  if (isFetching) {
     return (
       <div className={"mt-8"}>
         {" "}
         <LoadingSpinner />{" "}
       </div>
     );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className={"mt-8 flex w-full flex-col items-center justify-center"}>
+        <p className={"text-4xl font-bold"}> No questions asked...yet 👀</p>
+        <p className={"text-2xl"}>
+          {" "}
+          Ask the first question to get the discussion started{" "}
+        </p>
+        <EmptyComments />
+      </div>
+    );
+  }
 
   return (
     <div>
