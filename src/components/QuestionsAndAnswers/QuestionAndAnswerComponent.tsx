@@ -4,10 +4,7 @@ import FocusedQuestionComponent from "~/components/DraftProjects/FocusedQuestion
 import { useState } from "react";
 import { type Questions } from "@prisma/client";
 
-type Props = {
-  instructionsId: string;
-};
-export default function QuestionAndAnswerComponent({ instructionsId }: Props) {
+export default function QuestionAndAnswerComponent() {
   const [focusedQuestion, setFocusedQuestion] = useState<Questions>();
 
   return (
@@ -20,12 +17,8 @@ export default function QuestionAndAnswerComponent({ instructionsId }: Props) {
         />
       ) : (
         <>
-          <QuestionBox instructionsId={instructionsId} />{" "}
-          <div className="mt-4 border-t border-gray-400"></div>
-          <QuestionsList
-            instructionsId={instructionsId}
-            setFocusedQuestion={setFocusedQuestion}
-          />
+          <QuestionBox /> <div className="mt-4 border-t border-gray-400"></div>
+          <QuestionsList setFocusedQuestion={setFocusedQuestion} />
         </>
       )}
     </div>
