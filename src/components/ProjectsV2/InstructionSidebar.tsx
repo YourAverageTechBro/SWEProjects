@@ -112,7 +112,10 @@ export default function InstructionLeftSidebar({
           isQAFeatureEnabled &&
           (hasPurchasedProject || isFreeProject) && (
             <div className={"h-full w-full overflow-scroll"}>
-              <QuestionAndAnswerComponent />
+              <QuestionAndAnswerComponent
+                instructionId={instruction.id}
+                projectId={projectId}
+              />
             </div>
           )}
 
