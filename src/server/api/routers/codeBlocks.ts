@@ -13,29 +13,39 @@ export const codeBlocksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { instructionsId } = input;
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "create",
-        input: JSON.stringify(input),
-      });
+      try {
+        const { instructionsId } = input;
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+        });
 
-      const result = await ctx.prisma.codeBlocks.create({
-        data: {
-          instructionsId,
-          code: "",
-          fileName: "sample.tsx",
-        },
-      });
+        const result = await ctx.prisma.codeBlocks.create({
+          data: {
+            instructionsId,
+            code: "",
+            fileName: "sample.tsx",
+          },
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "create",
-        input: JSON.stringify(input),
-        result: JSON.stringify(result),
-      });
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   delete: privateProcedure
     .input(
@@ -44,27 +54,37 @@ export const codeBlocksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { codeBlockId } = input;
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "delete",
-        input: JSON.stringify(input),
-      });
+      try {
+        const { codeBlockId } = input;
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "delete",
+          input: JSON.stringify(input),
+        });
 
-      const result = await ctx.prisma.codeBlocks.delete({
-        where: {
-          id: codeBlockId,
-        },
-      });
+        const result = await ctx.prisma.codeBlocks.delete({
+          where: {
+            id: codeBlockId,
+          },
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "delete",
-        input: JSON.stringify(input),
-        result: JSON.stringify(result),
-      });
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "delete",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "delete",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   duplicate: privateProcedure
     .input(
@@ -80,24 +100,34 @@ export const codeBlocksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { codeBlocks } = input;
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "duplicate",
-        input: JSON.stringify(input),
-      });
+      try {
+        const { codeBlocks } = input;
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "duplicate",
+          input: JSON.stringify(input),
+        });
 
-      const result = await ctx.prisma.codeBlocks.createMany({
-        data: codeBlocks,
-      });
+        const result = await ctx.prisma.codeBlocks.createMany({
+          data: codeBlocks,
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "duplicate",
-        input: JSON.stringify(input),
-        result: JSON.stringify(result),
-      });
-      return result;
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "duplicate",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
+        return result;
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "duplicate",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   update: privateProcedure
     .input(
@@ -108,54 +138,74 @@ export const codeBlocksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { code, fileName, codeBlockId } = input;
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "update",
-        input: JSON.stringify(input),
-      });
+      try {
+        const { code, fileName, codeBlockId } = input;
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "update",
+          input: JSON.stringify(input),
+        });
 
-      const result = await ctx.prisma.codeBlocks.update({
-        where: {
-          id: codeBlockId,
-        },
-        data: {
-          code,
-          fileName,
-        },
-      });
+        const result = await ctx.prisma.codeBlocks.update({
+          where: {
+            id: codeBlockId,
+          },
+          data: {
+            code,
+            fileName,
+          },
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "update",
-        input: JSON.stringify(input),
-      });
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "update",
+          input: JSON.stringify(input),
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "update",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   getCodeBlocksForInstructionId: publicProcedure
     .input(z.object({ instructionsId: z.string() }))
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "getCodeBlocksForInstructionId",
-        input: JSON.stringify(input),
-      });
+      try {
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "getCodeBlocksForInstructionId",
+          input: JSON.stringify(input),
+        });
 
-      const result = await ctx.prisma.codeBlocks.findMany({
-        where: {
-          instructionsId: input.instructionsId,
-        },
-      });
+        const result = await ctx.prisma.codeBlocks.findMany({
+          where: {
+            instructionsId: input.instructionsId,
+          },
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "getCodeBlocksForInstructionId",
-        input: JSON.stringify(input),
-        result: JSON.stringify(result),
-      });
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "getCodeBlocksForInstructionId",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "getCodeBlocksForInstructionId",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   getMostRecentDiffForFileName: publicProcedure
     .input(
@@ -166,47 +216,57 @@ export const codeBlocksRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[codeBlocks] Starting endpoint", {
-        userId: ctx.userId,
-        function: "getMostRecentDiffForFileName",
-        input: JSON.stringify(input),
-      });
-      const { fileName, createdAt, projectVariantId } = input;
-      if (!fileName || !createdAt || !projectVariantId) return;
-      const result = await ctx.prisma.instructions.findMany({
-        where: {
-          projectVariantId,
-          codeBlock: {
-            some: {
-              fileName,
-              createdAt: {
-                lt: createdAt,
+      try {
+        ctx.log?.info("[codeBlocks] Starting endpoint", {
+          userId: ctx.userId,
+          function: "getMostRecentDiffForFileName",
+          input: JSON.stringify(input),
+        });
+        const { fileName, createdAt, projectVariantId } = input;
+        if (!fileName || !createdAt || !projectVariantId) return;
+        const result = await ctx.prisma.instructions.findMany({
+          where: {
+            projectVariantId,
+            codeBlock: {
+              some: {
+                fileName,
+                createdAt: {
+                  lt: createdAt,
+                },
               },
             },
           },
-        },
-        include: {
-          codeBlock: {
-            where: {
-              fileName,
+          include: {
+            codeBlock: {
+              where: {
+                fileName,
+              },
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
 
-      ctx.log?.info("[codeBlocks] Completed endpoint", {
-        userId: ctx.userId,
-        function: "getMostRecentDiffForFileName",
-        input: JSON.stringify(input),
-        result: JSON.stringify(result),
-      });
+        ctx.log?.info("[codeBlocks] Completed endpoint", {
+          userId: ctx.userId,
+          function: "getMostRecentDiffForFileName",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
 
-      return (
-        result.find((instruction) => instruction.codeBlock.length === 1)
-          ?.codeBlock[0]?.code ?? ""
-      );
+        return (
+          result.find((instruction) => instruction.codeBlock.length === 1)
+            ?.codeBlock[0]?.code ?? ""
+        );
+      } catch (error) {
+        ctx.log?.error("[codeBlocks] Failed endpoint", {
+          userId: ctx.userId,
+          function: "getMostRecentDiffForFileName",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
 });

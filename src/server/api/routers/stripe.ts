@@ -13,19 +13,28 @@ export const stripeRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[stripe] Starting endpoint", {
-        function: "getPrices",
-        input: JSON.stringify(input),
-      });
-      const { priceId } = input;
-      if (!priceId) return;
-      const price = await stripe.prices.retrieve(priceId);
-      if (!price.unit_amount) return;
-      ctx.log?.info("[stripe] Completed endpoint", {
-        function: "getPrices",
-        input: JSON.stringify(input),
-        price: price.unit_amount / 100,
-      });
-      return price.unit_amount / 100;
+      try {
+        ctx.log?.info("[stripe] Starting endpoint", {
+          function: "getPrices",
+          input: JSON.stringify(input),
+        });
+        const { priceId } = input;
+        if (!priceId) return;
+        const price = await stripe.prices.retrieve(priceId);
+        if (!price.unit_amount) return;
+        ctx.log?.info("[stripe] Completed endpoint", {
+          function: "getPrices",
+          input: JSON.stringify(input),
+          price: price.unit_amount / 100,
+        });
+        return price.unit_amount / 100;
+      } catch (error) {
+        ctx.log?.error("[stripe] Failed endpoint", {
+          function: "getPrices",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
 });
