@@ -89,6 +89,7 @@ async function handler(
         fields: {
           name: first_name as string,
           last_name: last_name as string,
+          clerk_id: id as string,
         },
         status: "active",
       });
