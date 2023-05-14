@@ -17,6 +17,7 @@
     "@clerk/nextjs": "^4.15.0",
     "@headlessui/react": "^1.7.13",
     "@heroicons/react": "^2.0.17",
+    "@mailerlite/mailerlite-nodejs": "^1.0.1",
     "@monaco-editor/react": "^4.5.0",
     "@prisma/client": "^4.11.0",
     "@react-email/button": "0.0.8",
