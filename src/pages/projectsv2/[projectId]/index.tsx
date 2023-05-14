@@ -176,12 +176,12 @@ export default function EditProject({
             </p>
           )}
         </div>
-        <div className={"flex h-[80vh]"}>
+        <div className={"flex flex-col sm:h-[70vh] sm:flex-row"}>
           <div
             className={`${
               instruction.hasCodeBlocks &&
               (isFreeProject || purchasedProject || !isAtPagePreviewLimit)
-                ? "w-1/3"
+                ? `w-full sm:w-1/3`
                 : "w-full"
             }`}
           >
@@ -203,7 +203,7 @@ export default function EditProject({
           {instruction.hasCodeBlocks &&
             projectVariantId &&
             (isFreeProject || purchasedProject || !isAtPagePreviewLimit) && (
-              <div className={"w-2/3"}>
+              <div className={"w-full sm:w-2/3"}>
                 <CodeBlocks
                   instruction={instruction}
                   isAuthor={isAuthor}
