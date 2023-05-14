@@ -11,41 +11,59 @@ import ProjectsFindManyArgs = Prisma.ProjectsFindManyArgs;
 
 export const projectsRouter = createTRPCRouter({
   getAll: publicProcedure.query(({ ctx }) => {
-    ctx.log?.info("[projects] Starting endpoint", {
-      userId: ctx.userId,
-      function: "getAll",
-    });
-    const result = ctx.prisma.projects.findMany();
-    ctx.log?.info("[projects] Completed endpoint", {
-      userId: ctx.userId,
-      function: "getAll",
-      result: JSON.stringify(result),
-    });
-    return result;
+    try {
+      ctx.log?.info("[projects] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getAll",
+      });
+      const result = ctx.prisma.projects.findMany();
+      ctx.log?.info("[projects] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getAll",
+        result: JSON.stringify(result),
+      });
+      return result;
+    } catch (error) {
+      ctx.log?.error("[projects] Failed endpoint", {
+        userId: ctx.userId,
+        function: "getAll",
+        error: JSON.stringify(error),
+      });
+      throw error;
+    }
   }),
   getAllPreviews: publicProcedure.query(({ ctx }) => {
-    ctx.log?.info("[projects] Starting endpoint", {
-      userId: ctx.userId,
-      function: "getAllPreviews",
-    });
-    const result = ctx.prisma.projects.findMany({
-      select: {
-        id: true,
-        title: true,
-        thumbnailUrl: true,
-        preRequisites: true,
-        videoDemoUrl: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-    ctx.log?.info("[projects] Completed endpoint", {
-      userId: ctx.userId,
-      function: "getAllPreviews",
-      result: JSON.stringify(result),
-    });
-    return result;
+    try {
+      ctx.log?.info("[projects] Starting endpoint", {
+        userId: ctx.userId,
+        function: "getAllPreviews",
+      });
+      const result = ctx.prisma.projects.findMany({
+        select: {
+          id: true,
+          title: true,
+          thumbnailUrl: true,
+          preRequisites: true,
+          videoDemoUrl: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      ctx.log?.info("[projects] Completed endpoint", {
+        userId: ctx.userId,
+        function: "getAllPreviews",
+        result: JSON.stringify(result),
+      });
+      return result;
+    } catch (error) {
+      ctx.log?.error("[projects] Failed endpoint", {
+        userId: ctx.userId,
+        function: "getAllPreviews",
+        error: JSON.stringify(error),
+      });
+      throw error;
+    }
   }),
   getPreviewById: publicProcedure
     .input(
@@ -55,40 +73,49 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[projects] Starting endpoint", {
-        function: "getPreviewById",
-        input: JSON.stringify(input),
-      });
-      if (!input.projectId) return null;
-      const filter: ProjectsFindUniqueArgs = {
-        where: {
-          id: input.projectId,
-        },
-      };
-      if (input.userId) {
-        filter.include = {
-          purchases: {
-            where: {
-              userId: input.userId,
-            },
+      try {
+        ctx.log?.info("[projects] Starting endpoint", {
+          function: "getPreviewById",
+          input: JSON.stringify(input),
+        });
+        if (!input.projectId) return null;
+        const filter: ProjectsFindUniqueArgs = {
+          where: {
+            id: input.projectId,
           },
         };
+        if (input.userId) {
+          filter.include = {
+            purchases: {
+              where: {
+                userId: input.userId,
+              },
+            },
+          };
+        }
+
+        const post = await ctx.prisma.projects.findUnique(filter);
+
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
+        ctx.log?.info("[projects] Completed endpoint", {
+          function: "getPreviewById",
+          input: JSON.stringify(input),
+          post: JSON.stringify(post),
+        });
+        return post as Prisma.ProjectsGetPayload<{
+          include: {
+            purchases: true;
+          };
+        }>;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          function: "getPreviewById",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
       }
-
-      const post = await ctx.prisma.projects.findUnique(filter);
-
-      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
-
-      ctx.log?.info("[projects] Completed endpoint", {
-        function: "getPreviewById",
-        input: JSON.stringify(input),
-        post: JSON.stringify(post),
-      });
-      return post as Prisma.ProjectsGetPayload<{
-        include: {
-          purchases: true;
-        };
-      }>;
     }),
   getProjectVariantId: publicProcedure
     .input(
@@ -99,39 +126,49 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[projects] Starting endpoint", {
-        userId: ctx.userId,
-        function: "getProjectVariantId",
-        input: JSON.stringify(input),
-      });
+      try {
+        ctx.log?.info("[projects] Starting endpoint", {
+          userId: ctx.userId,
+          function: "getProjectVariantId",
+          input: JSON.stringify(input),
+        });
 
-      const { projectsId, frontendVariant, backendVariant } = input;
+        const { projectsId, frontendVariant, backendVariant } = input;
 
-      if (!projectsId || !frontendVariant || !backendVariant) return null;
-      const result = await ctx.prisma.projects.findUnique({
-        where: {
-          id: projectsId,
-        },
-        include: {
-          projectVariants: {
-            where: {
-              frontendVariant: input.frontendVariant,
-              backendVariant: input.backendVariant,
+        if (!projectsId || !frontendVariant || !backendVariant) return null;
+        const result = await ctx.prisma.projects.findUnique({
+          where: {
+            id: projectsId,
+          },
+          include: {
+            projectVariants: {
+              where: {
+                frontendVariant: input.frontendVariant,
+                backendVariant: input.backendVariant,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (result?.projectVariants.length !== 1)
-        throw new TRPCError({ code: "CONFLICT" });
+        if (result?.projectVariants.length !== 1)
+          throw new TRPCError({ code: "CONFLICT" });
 
-      ctx.log?.info("[projects] Completed endpoint", {
-        userId: ctx.userId,
-        function: "getProjectVariantId",
-        input: JSON.stringify(input),
-      });
+        ctx.log?.info("[projects] Completed endpoint", {
+          userId: ctx.userId,
+          function: "getProjectVariantId",
+          input: JSON.stringify(input),
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          userId: ctx.userId,
+          function: "getProjectVariantId",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   getById: publicProcedure
     .input(
@@ -142,62 +179,72 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[projects] Starting endpoint", {
-        userId: ctx.userId,
-        function: "getById",
-        input: JSON.stringify(input),
-      });
-      if (!input.projectId) return null;
-      const filter: ProjectsFindUniqueArgs = {
-        where: {
-          id: input.projectId,
-        },
-        include: {
-          projectVariants: {
-            where: {
-              frontendVariant: input.frontendVariant,
-              backendVariant: input.backendVariant,
-            },
-            include: {
-              instructions: {
-                include: {
-                  codeBlock: true,
-                  successMedia: true,
+      try {
+        ctx.log?.info("[projects] Starting endpoint", {
+          userId: ctx.userId,
+          function: "getById",
+          input: JSON.stringify(input),
+        });
+        if (!input.projectId) return null;
+        const filter: ProjectsFindUniqueArgs = {
+          where: {
+            id: input.projectId,
+          },
+          include: {
+            projectVariants: {
+              where: {
+                frontendVariant: input.frontendVariant,
+                backendVariant: input.backendVariant,
+              },
+              include: {
+                instructions: {
+                  include: {
+                    codeBlock: true,
+                    successMedia: true,
+                  },
                 },
               },
             },
           },
-        },
-      };
-      const post = await ctx.prisma.projects.findUnique(filter);
+        };
+        const post = await ctx.prisma.projects.findUnique(filter);
 
-      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
 
-      ctx.log?.info("[projects] Completed endpoint", {
-        userId: ctx.userId,
-        function: "getById",
-        input: JSON.stringify(input),
-        data: JSON.stringify({
-          id: post.id,
-          title: post.title,
-          description: post.description,
-        }),
-      });
+        ctx.log?.info("[projects] Completed endpoint", {
+          userId: ctx.userId,
+          function: "getById",
+          input: JSON.stringify(input),
+          data: JSON.stringify({
+            id: post.id,
+            title: post.title,
+            description: post.description,
+          }),
+        });
 
-      return post as Prisma.ProjectsGetPayload<{
-        include: {
-          projectVariants: {
-            include: {
-              instructions: {
-                include: {
-                  codeBlock: true;
-                  successMedia: true;
+        return post as Prisma.ProjectsGetPayload<{
+          include: {
+            projectVariants: {
+              include: {
+                instructions: {
+                  include: {
+                    codeBlock: true;
+                    successMedia: true;
+                  };
                 };
               };
             };
           };
-        };
-      }>;
+        }>;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          userId: ctx.userId,
+          function: "getById",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   getUsersPurchasedProjects: publicProcedure
     .input(
@@ -206,33 +253,43 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      ctx.log?.info("[projects] Starting endpoint", {
-        userId: ctx.userId,
-        function: "getUsersPurchasedProjects",
-        input: JSON.stringify(input),
-      });
-      if (!input.userId) return null;
-      const filter: ProjectsFindManyArgs = {
-        where: {
-          purchases: {
-            some: {
-              userId: input.userId,
+      try {
+        ctx.log?.info("[projects] Starting endpoint", {
+          userId: ctx.userId,
+          function: "getUsersPurchasedProjects",
+          input: JSON.stringify(input),
+        });
+        if (!input.userId) return null;
+        const filter: ProjectsFindManyArgs = {
+          where: {
+            purchases: {
+              some: {
+                userId: input.userId,
+              },
             },
           },
-        },
-      };
-      const posts = await ctx.prisma.projects.findMany(filter);
+        };
+        const posts = await ctx.prisma.projects.findMany(filter);
 
-      if (!posts) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!posts) throw new TRPCError({ code: "NOT_FOUND" });
 
-      ctx.log?.info("[projects] Completed endpoint", {
-        userId: ctx.userId,
-        function: "getUsersPurchasedProjects",
-        input: JSON.stringify(input),
-        posts: JSON.stringify(posts),
-      });
+        ctx.log?.info("[projects] Completed endpoint", {
+          userId: ctx.userId,
+          function: "getUsersPurchasedProjects",
+          input: JSON.stringify(input),
+          posts: JSON.stringify(posts),
+        });
 
-      return posts;
+        return posts;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          userId: ctx.userId,
+          function: "getUsersPurchasedProjects",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
   create: privateProcedure
     .input(
@@ -242,45 +299,55 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const authorId = ctx.userId;
-      const { frontendVariant, backendVariant } = input;
-      ctx.log?.info("[projects] Starting endpoint", {
-        userId: ctx.userId,
-        function: "create",
-        input: JSON.stringify(input),
-      });
-      const result = await ctx.prisma.projects.create({
-        data: {
-          authorId,
-          projectVariants: {
-            create: [
-              {
-                frontendVariant: frontendVariant,
-                backendVariant: backendVariant,
-                instructions: {
-                  create: [
-                    {
-                      codeBlock: {
-                        create: [
-                          {
-                            fileName: "index.tsx",
-                            code: "console.log('Hello World!');",
-                          },
-                        ],
+      try {
+        const authorId = ctx.userId;
+        const { frontendVariant, backendVariant } = input;
+        ctx.log?.info("[projects] Starting endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+        });
+        const result = await ctx.prisma.projects.create({
+          data: {
+            authorId,
+            projectVariants: {
+              create: [
+                {
+                  frontendVariant: frontendVariant,
+                  backendVariant: backendVariant,
+                  instructions: {
+                    create: [
+                      {
+                        codeBlock: {
+                          create: [
+                            {
+                              fileName: "index.tsx",
+                              code: "console.log('Hello World!');",
+                            },
+                          ],
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
-        },
-      });
-      ctx.log?.info("[projects] Completed endpoint", {
-        userId: ctx.userId,
-        function: "create",
-        input: JSON.stringify(input),
-      });
-      return result;
+        });
+        ctx.log?.info("[projects] Completed endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+        });
+        return result;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          userId: ctx.userId,
+          function: "create",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
     }),
 });

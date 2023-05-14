@@ -40,6 +40,79 @@ async function handler(
   let evt: Event | null = null;
   try {
     evt = wh.verify(payload, headers) as Event;
+
+    // Handle the webhook
+    const eventType: EventType = evt.type;
+    if (eventType === "user.created") {
+      const { id, email_addresses, first_name, last_name } = evt.data;
+      req.log.info("[api/webhooks/clerk/users] Starting endpoint", {
+        data: JSON.stringify(evt.data),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!id || !email_addresses || !email_addresses[0].email_address) {
+        req.log.info("[api/webhooks/clerk/users] Invalid data from Clerk", {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          data: JSON.stringify({ id, email_addresses }),
+        });
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const emailAddress = email_addresses[0].email_address as string;
+
+      req.log.info("[api/webhooks/clerk/users] Sending welcome email", {
+        data: JSON.stringify({
+          id: id as string,
+          emailAddress,
+          first_name: first_name as string,
+          last_name: last_name as string,
+        }),
+      });
+
+      await resend.sendEmail({
+        from: "noreply@updates.sweprojects.com",
+        to: emailAddress,
+        subject: "Welcome to SWE Projects! Here are some helpful links",
+        react: <WelcomeEmail />,
+      });
+
+      req.log.info("[api/webhooks/clerk/users] Adding user to mailer lite", {
+        data: JSON.stringify({
+          id: id as string,
+          emailAddress,
+          first_name: first_name as string,
+          last_name: last_name as string,
+        }),
+      });
+      const resp = await mailerlite.subscribers.createOrUpdate({
+        email: emailAddress,
+        fields: {
+          name: first_name as string,
+          last_name: last_name as string,
+        },
+        status: "active",
+        subscribed_at: new Date().toISOString(),
+      });
+
+      req.log.info("[api/webhooks/clerk/users] Updating clerk metadata", {
+        data: JSON.stringify({
+          id: id as string,
+          emailAddress,
+          first_name: first_name as string,
+          last_name: last_name as string,
+        }),
+      });
+      await clerk.users.updateUserMetadata(id as string, {
+        privateMetadata: {
+          mailerLiteId: resp.data.data.id,
+        },
+      });
+
+      req.log.info("[api/webhooks/clerk/users] Completed endpoint", {
+        data: JSON.stringify(evt.data),
+      });
+      res.json({});
+    }
   } catch (e: any) {
     req.log.error(
       "[api/webhooks/clerk/users] Error",
@@ -47,79 +120,6 @@ async function handler(
       { error: e.message }
     );
     return res.status(400).json({});
-  }
-
-  // Handle the webhook
-  const eventType: EventType = evt.type;
-  if (eventType === "user.created") {
-    const { id, email_addresses, first_name, last_name } = evt.data;
-    req.log.info("[api/webhooks/clerk/users] Starting endpoint", {
-      data: JSON.stringify(evt.data),
-    });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (!id || !email_addresses || !email_addresses[0].email_address) {
-      req.log.info("[api/webhooks/clerk/users] Invalid data from Clerk", {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: JSON.stringify({ id, email_addresses }),
-      });
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const emailAddress = email_addresses[0].email_address as string;
-
-    req.log.info("[api/webhooks/clerk/users] Sending welcome email", {
-      data: JSON.stringify({
-        id: id as string,
-        emailAddress,
-        first_name: first_name as string,
-        last_name: last_name as string,
-      }),
-    });
-
-    await resend.sendEmail({
-      from: "noreply@updates.sweprojects.com",
-      to: emailAddress,
-      subject: "Welcome to SWE Projects! Here are some helpful links",
-      react: <WelcomeEmail />,
-    });
-
-    req.log.info("[api/webhooks/clerk/users] Adding user to mailer lite", {
-      data: JSON.stringify({
-        id: id as string,
-        emailAddress,
-        first_name: first_name as string,
-        last_name: last_name as string,
-      }),
-    });
-    const resp = await mailerlite.subscribers.createOrUpdate({
-      email: emailAddress,
-      fields: {
-        name: first_name as string,
-        last_name: last_name as string,
-      },
-      status: "active",
-      subscribed_at: new Date().toISOString(),
-    });
-
-    req.log.info("[api/webhooks/clerk/users] Updating clerk metadata", {
-      data: JSON.stringify({
-        id: id as string,
-        emailAddress,
-        first_name: first_name as string,
-        last_name: last_name as string,
-      }),
-    });
-    await clerk.users.updateUserMetadata(id as string, {
-      privateMetadata: {
-        mailerLiteId: resp.data.data.id,
-      },
-    });
-
-    req.log.info("[api/webhooks/clerk/users] Completed endpoint", {
-      data: JSON.stringify(evt.data),
-    });
-    res.json({});
   }
 }
 
