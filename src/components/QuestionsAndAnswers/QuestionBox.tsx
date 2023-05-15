@@ -2,7 +2,7 @@ import MdEditor from "~/components/Common/MdEditor/MdEditor";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { SignedIn, SignedOut, SignUpButton, useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignUpButton, useUser } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
@@ -12,7 +12,9 @@ type Props = {
 export default function QuestionBox({ instructionId, projectId }: Props) {
   const [title, setTitle] = useState<string | undefined>("");
   const [question, setQuestion] = useState<string | undefined>("");
-  const { userId } = useAuth();
+  const { user } = useUser();
+  const userId = user?.id;
+  const username = user?.username;
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.questions.create.useMutation({
@@ -35,7 +37,13 @@ export default function QuestionBox({ instructionId, projectId }: Props) {
 
   const postQuestion = () => {
     if (title && question && userId) {
-      mutate({ userId, instructionsId: instructionId, question, title });
+      mutate({
+        userId,
+        instructionsId: instructionId,
+        question,
+        title,
+        username,
+      });
     }
   };
 
@@ -74,8 +82,9 @@ export default function QuestionBox({ instructionId, projectId }: Props) {
       <SignedIn>
         <button
           type="button"
-          className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
           onClick={postQuestion}
+          disabled={!title || !question}
         >
           {isLoading && (
             <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />

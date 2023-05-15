@@ -63,6 +63,7 @@ model Questions {
   instructionsId String
   instructions   Instructions? @relation(fields: [instructionsId], references: [id])
   userId         String
+  username       String?       @default("") @db.VarChar(255)
   title          String        @default("") @db.LongText
   question       String        @default("") @db.LongText
   comments       Comment[]
@@ -74,6 +75,7 @@ model Comment {
   questionId      String
   questions       Questions? @relation(fields: [questionId], references: [id])
   userId          String
+  username        String?    @default("") @db.VarChar(255)
   comment         String     @default("") @db.LongText
   parentCommentId String?
   parentComment   Comment?   @relation("CommentThread", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)

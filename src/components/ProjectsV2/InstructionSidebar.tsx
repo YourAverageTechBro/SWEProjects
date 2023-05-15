@@ -65,7 +65,7 @@ export default function InstructionLeftSidebar({
           </div>
         ))}
       </div>
-      <div className={"flex h-[70vh] flex-col overflow-scroll"}>
+      <div className={"flex h-[80vh] flex-col overflow-scroll"}>
         {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
           projectInstructionTitles.map((entry, index) => {
             return (

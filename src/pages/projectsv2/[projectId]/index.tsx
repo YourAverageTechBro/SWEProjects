@@ -176,7 +176,7 @@ export default function EditProject({
             </p>
           )}
         </div>
-        <div className={"flex flex-col sm:h-[70vh] sm:flex-row"}>
+        <div className={"flex flex-col sm:h-[80vh] sm:flex-row"}>
           <div
             className={`${
               instruction.hasCodeBlocks &&

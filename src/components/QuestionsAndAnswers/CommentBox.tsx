@@ -2,7 +2,7 @@ import MdEditor from "~/components/Common/MdEditor/MdEditor";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
@@ -16,7 +16,9 @@ export default function CommentBox({
   cancelCallback,
 }: Props) {
   const [comment, setComment] = useState<string | undefined>("");
-  const { userId } = useAuth();
+  const { user } = useUser();
+  const userId = user?.id;
+  const username = user?.username;
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.comments.create.useMutation({
@@ -37,7 +39,7 @@ export default function CommentBox({
 
   const postComment = () => {
     if (comment && userId) {
-      mutate({ userId, comment, parentCommentId, questionId });
+      mutate({ userId, comment, parentCommentId, questionId, username });
     }
   };
 

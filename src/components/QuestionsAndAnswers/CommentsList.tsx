@@ -45,9 +45,14 @@ export default function CommentsList({ questionId }: Props) {
           <div
             className={"flex items-center justify-between text-xs font-bold"}
           >
-            <button onClick={() => setCommentToReplyTo(comment.id)}>
-              reply
-            </button>
+            <div className={"flex items-center gap-2"}>
+              <div className={"rounded-full bg-gray-300 px-2 py-2 text-xs"}>
+                {comment.username}
+              </div>
+              <button onClick={() => setCommentToReplyTo(comment.id)}>
+                reply
+              </button>
+            </div>
             <p className={"text-xs text-gray-500"}>
               {getRelativeDate(comment.createdAt)}
             </p>
