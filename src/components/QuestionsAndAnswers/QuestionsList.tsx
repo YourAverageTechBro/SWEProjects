@@ -59,9 +59,14 @@ export default function QuestionsList({
         >
           <div className={"text-2xl font-bold"}> {question.title} </div>
           <div className={"flex items-center justify-between"}>
-            <div className={"flex items-center"}>
-              <ChatBubbleOvalLeftEllipsisIcon className={"h-4 w-4"} />
-              {question._count.comments}
+            <div className={"flex items-center gap-4"}>
+              <div className={"flex items-center"}>
+                <ChatBubbleOvalLeftEllipsisIcon className={"h-4 w-4"} />
+                {question._count.comments}
+              </div>
+              <div className={"rounded-full bg-gray-300 px-2 py-2 text-xs"}>
+                {question.username}
+              </div>
             </div>
 
             {getRelativeDate(question.createdAt)}

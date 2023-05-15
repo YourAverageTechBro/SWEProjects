@@ -13,6 +13,7 @@ export const questionsRouter = createTRPCRouter({
         userId: z.string(),
         question: z.string(),
         title: z.string(),
+        username: z.string().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -22,7 +23,7 @@ export const questionsRouter = createTRPCRouter({
           function: "create",
           input: JSON.stringify(input),
         });
-        const { instructionsId, userId, question, title } = input;
+        const { instructionsId, userId, question, title, username } = input;
 
         const result = await ctx.prisma.questions.create({
           data: {
@@ -30,6 +31,7 @@ export const questionsRouter = createTRPCRouter({
             userId,
             question,
             title,
+            username,
           },
         });
 

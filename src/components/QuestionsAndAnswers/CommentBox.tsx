@@ -2,7 +2,7 @@ import MdEditor from "~/components/Common/MdEditor/MdEditor";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
@@ -16,7 +16,9 @@ export default function CommentBox({
   cancelCallback,
 }: Props) {
   const [comment, setComment] = useState<string | undefined>("");
-  const { userId } = useAuth();
+  const { user } = useUser();
+  const userId = user?.id;
+  const username = user?.username;
   const ctx = api.useContext();
 
   const { mutate, isLoading } = api.comments.create.useMutation({
@@ -37,7 +39,7 @@ export default function CommentBox({
 
   const postComment = () => {
     if (comment && userId) {
-      mutate({ userId, comment, parentCommentId, questionId });
+      mutate({ userId, comment, parentCommentId, questionId, username });
     }
   };
 
@@ -59,8 +61,9 @@ export default function CommentBox({
       </div>
       <button
         type="button"
-        className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        className="ml-4 mt-4 inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
         onClick={postComment}
+        disabled={!comment}
       >
         {isLoading && (
           <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
