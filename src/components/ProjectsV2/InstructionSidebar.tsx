@@ -110,7 +110,7 @@ export default function InstructionLeftSidebar({
 
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
           isQAFeatureEnabled &&
-          (hasPurchasedProject || isFreeProject) && (
+          hasPurchasedProject && (
             <div className={"h-full w-full overflow-scroll"}>
               <QuestionAndAnswerComponent
                 instructionId={instruction.id}
@@ -121,8 +121,7 @@ export default function InstructionLeftSidebar({
 
         {focusedSideBarContent === SideBarContent.QUESTIONS &&
           isQAFeatureEnabled &&
-          !hasPurchasedProject &&
-          !isFreeProject && (
+          !hasPurchasedProject && (
             <div className={"h-full w-full overflow-scroll"}>
               <QuestionsPurchaseNudge
                 projectId={projectId}
