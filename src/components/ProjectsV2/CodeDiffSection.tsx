@@ -28,7 +28,7 @@ export default function CodeDiffSection({
 
   return (
     <DiffEditor
-      height={"100vh"}
+      height={"100%"}
       theme="vs-dark"
       language={"typescript"}
       original={originalCode}
