@@ -59,7 +59,7 @@ export default function TextExplanationComponent({
 
   return (
     <div
-      className={"h-full w-full overflow-scroll rounded-lg border"}
+      className={"h-[70vh] w-full overflow-scroll rounded-lg border"}
       data-color-mode="light"
     >
       <MdEditor

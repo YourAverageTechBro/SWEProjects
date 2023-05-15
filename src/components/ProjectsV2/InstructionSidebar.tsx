@@ -45,7 +45,7 @@ export default function InstructionLeftSidebar({
   );
 
   return (
-    <div className={"relative h-full overflow-y-hidden"}>
+    <div className={"h-70vh relative h-full overflow-y-scroll"}>
       <div className={"flex w-full justify-center"}>
         {Object.values(SideBarContent).map((sideBarContent, index) => (
           <div
@@ -65,7 +65,7 @@ export default function InstructionLeftSidebar({
           </div>
         ))}
       </div>
-      <div className={"flex h-[80vh] flex-col overflow-scroll"}>
+      <div className={"flex h-[70vh] flex-col overflow-scroll"}>
         {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
           projectInstructionTitles.map((entry, index) => {
             return (
