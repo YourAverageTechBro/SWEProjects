@@ -271,8 +271,6 @@ export const projectsRouter = createTRPCRouter({
         };
         const posts = await ctx.prisma.projects.findMany(filter);
 
-        if (!posts) throw new TRPCError({ code: "NOT_FOUND" });
-
         ctx.log?.info("[projects] Completed endpoint", {
           userId: ctx.userId,
           function: "getUsersPurchasedProjects",
