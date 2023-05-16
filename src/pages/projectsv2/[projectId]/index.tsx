@@ -4,8 +4,8 @@ import {
   FrontendVariant,
   ProjectAccessType,
 } from "@prisma/client";
-import React, { useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import React, { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { type GetServerSideProps } from "next";
@@ -16,6 +16,7 @@ import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { getAuth } from "@clerk/nextjs/server";
 import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
 import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
+import { usePostHog } from "posthog-js/react";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -36,9 +37,8 @@ export default function EditProject({
   stripePriceId,
   projectVariantId,
 }: Props) {
-  const user = useUser();
-  const isAdmin = user?.user?.publicMetadata.isAdmin as boolean;
-  const { userId } = useAuth();
+  const { isSignedIn, user } = useUser();
+  const isAdmin = user?.publicMetadata.isAdmin as boolean;
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
   const {
@@ -50,10 +50,26 @@ export default function EditProject({
     projectId: string;
     successfullyPurchased?: string;
   };
+  const postHog = usePostHog();
 
   const indexOfCurrentInstruction = projectInstructionTitles.findIndex(
     (instruction) => instruction.id === instructionId
   );
+
+  useEffect(() => {
+    if (user && isSignedIn && indexOfCurrentInstruction !== -1) {
+      postHog?.identify(user.id, {
+        name: user.fullName,
+        email: user.primaryEmailAddress?.emailAddress,
+      });
+      postHog?.capture("Visit Project Instruction", {
+        distinct_id: user.id,
+        project_id: projectId,
+        time: new Date(),
+        indexOfCurrentInstruction,
+      });
+    }
+  }, [projectId, isSignedIn, user, indexOfCurrentInstruction, postHog]);
 
   const isAtPagePreviewLimit =
     indexOfCurrentInstruction >= numberOfPreviewPages;
@@ -71,7 +87,7 @@ export default function EditProject({
   const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
     api.projects.getUsersPurchasedProjects.useQuery(
       {
-        userId,
+        userId: user?.id,
       },
       {
         refetchOnWindowFocus: false,
