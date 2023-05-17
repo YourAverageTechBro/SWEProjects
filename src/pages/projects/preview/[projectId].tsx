@@ -100,7 +100,7 @@ export default function PreviewPage({
           <button
             type="submit"
             role="link"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-indigo-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-2xl"
             onClick={() => {
               setIsRedirectingToStripe(true);
               postHog?.capture("Clicked Buy Now", {
@@ -122,7 +122,7 @@ export default function PreviewPage({
           <button
             type="submit"
             role="link"
-            className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="mt-4 w-full rounded-full bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             Sign Up To Get The Coding Tutorial
           </button>
@@ -132,14 +132,59 @@ export default function PreviewPage({
   );
 
   const newPreviewUi = (
-    <Link href={`/projectsv2/${project.id}`}>
-      <button className="mt-4 w-full rounded-md bg-indigo-600 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-        {" "}
-        {project.projectAccessType === ProjectAccessType.Free
-          ? " View the FREE coding tutorial"
-          : "Check out the tutorial"}
-      </button>
-    </Link>
+    <div className={"mb-8 flex w-full flex-col justify-center gap-4"}>
+      <Link href={`/projectsv2/${project.id}`}>
+        <button className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+          {" "}
+          {project.projectAccessType === ProjectAccessType.Free
+            ? "View the FREE coding tutorial"
+            : "Preview the tutorial"}
+        </button>
+      </Link>
+
+      {user?.id &&
+        !userHasPurchasedProject &&
+        project.projectAccessType !== ProjectAccessType.Free && (
+          <form
+            action={`/api/checkout_sessions?userId=${
+              user.id ?? ""
+            }&stripePriceId=${project.stripePriceId ?? ""}&projectId=${
+              project.id
+            }`}
+            method="POST"
+          >
+            <button
+              type="submit"
+              role="link"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-green-600 px-8 py-6 text-xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:text-2xl"
+              onClick={() => {
+                setIsRedirectingToStripe(true);
+                postHog?.capture("Clicked Buy Now", {
+                  distinct_id: user.id,
+                  project_id: projectId,
+                  price: stripePrice,
+                });
+              }}
+            >
+              {isRedirectingToStripe && (
+                <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
+              )}
+              Purchase The Tutorial
+            </button>
+          </form>
+        )}
+      {!user?.id && project.projectAccessType !== ProjectAccessType.Free && (
+        <SignUpButton mode={"modal"} redirectUrl={redirectUrl}>
+          <button
+            type="submit"
+            role="link"
+            className="mt-4 rounded-full bg-green-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+          >
+            Sign Up To Get The Coding Tutorial
+          </button>
+        </SignUpButton>
+      )}
+    </div>
   );
 
   return (
