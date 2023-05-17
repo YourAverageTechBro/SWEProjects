@@ -137,7 +137,7 @@ export default function PreviewPage({
         <button className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
           {" "}
           {project.projectAccessType === ProjectAccessType.Free
-            ? " View the FREE coding tutorial"
+            ? "View the FREE coding tutorial"
             : "Preview the tutorial"}
         </button>
       </Link>
@@ -156,7 +156,7 @@ export default function PreviewPage({
             <button
               type="submit"
               role="link"
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-green-600 px-8 py-6 text-xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:text-2xl"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-green-600 px-8 py-6 text-xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:text-2xl"
               onClick={() => {
                 setIsRedirectingToStripe(true);
                 postHog?.capture("Clicked Buy Now", {
