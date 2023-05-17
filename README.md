@@ -26,7 +26,20 @@ npm install
 npm run dev
 ```
 
-We currently do not provide access to the database with the coding instructions. You will need to create your own database and update the connection string in a .env file.
+### Connect your own database
+SWE Projects uses Planetscale for our database. To connect your own local instance to SWE Projects, create a Planetsscale
+account and create a database. Once you create a database, you can connect it to SWE Projects by creating a `.env` file
+at the root directory and add an environment variable called `DATABASE_URL` pointing to your Planetscale db url.
+
+After adding your `DATABASE_URL`, run `npx prisma db push && npm install` to initialize the database on your local instance.
+
+You probably also want to set up authentication as well. SWE Projects uses Clerk for authentication. Create your Clerk account
+and pass in the `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` env variables to set it all up.
+
+If you're confused, you should check out Theo's video [here](https://www.youtube.com/watch?v=YkOSUVzOAA4&t=7749s) on how to set up Planetscale and Clerk.
+SWE Project uses the t3 starter kit mentioned in the video so you should be able to follow along with the video. 
+
+TODO(YourAverageTechBro): Provide test data script
 
 We are working on writing up some instructions on how to create your own database instance to develop locally. 
 
