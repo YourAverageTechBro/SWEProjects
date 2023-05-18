@@ -61,7 +61,7 @@ model Questions {
   id             String        @id @default(cuid())
   createdAt      DateTime      @default(now())
   instructionsId String
-  instructions   Instructions? @relation(fields: [instructionsId], references: [id])
+  instructions   Instructions? @relation(fields: [instructionsId], references: [id], onDelete: Cascade)
   userId         String
   username       String?       @default("") @db.VarChar(255)
   title          String        @default("") @db.LongText
@@ -73,7 +73,7 @@ model Comment {
   id              String     @id @default(cuid())
   createdAt       DateTime   @default(now())
   questionId      String
-  questions       Questions? @relation(fields: [questionId], references: [id])
+  questions       Questions? @relation(fields: [questionId], references: [id], onDelete: Cascade)
   userId          String
   username        String?    @default("") @db.VarChar(255)
   comment         String     @default("") @db.LongText
@@ -86,7 +86,7 @@ model CodeBlocks {
   id             String        @id @default(cuid())
   createdAt      DateTime      @default(now())
   instructionsId String
-  instructions   Instructions? @relation(fields: [instructionsId], references: [id])
+  instructions   Instructions? @relation(fields: [instructionsId], references: [id], onDelete: Cascade)
   code           String        @db.LongText
   fileName       String
 }
