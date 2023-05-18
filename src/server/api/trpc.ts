@@ -30,6 +30,7 @@ import { getAuth } from "@clerk/nextjs/server";
 import { ZodError } from "zod";
 import { type AxiomAPIRequest } from "next-axiom";
 import { type NextApiRequest } from "next";
+import { type JwtPayload } from "@clerk/types";
 
 type CreateContextOptions = Record<string, never>;
 
@@ -47,6 +48,7 @@ export const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
     prisma,
     userId: null,
+    isAdmin: false,
   };
 };
 
@@ -54,6 +56,12 @@ const isAxiomAPIRequest = (
   req?: NextApiRequest | AxiomAPIRequest
 ): req is AxiomAPIRequest => {
   return Boolean((req as AxiomAPIRequest)?.log);
+};
+
+type CustomSessionClaims = JwtPayload & {
+  publicMetadata: {
+    isAdmin: boolean;
+  };
 };
 
 /**
@@ -66,6 +74,9 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
   const session = getAuth(req);
   const userId = session.userId;
+  const isAdmin =
+    (session.sessionClaims as CustomSessionClaims)?.publicMetadata?.isAdmin ??
+    false;
 
   if (isAxiomAPIRequest(req)) {
     const log = session ? req.log.with({ userId: userId }) : req.log;
@@ -73,11 +84,13 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
       userId,
       prisma,
       log,
+      isAdmin,
     };
   } else {
     return {
       userId,
       prisma,
+      isAdmin,
     };
   }
 };
@@ -130,4 +143,17 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   });
 });
 
+const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.isAdmin || !ctx.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      userId: ctx.userId,
+      isAdmin: ctx.isAdmin,
+    },
+  });
+});
+
 export const privateProcedure = publicProcedure.use(enforceUserIsAuthed);
+export const adminProcedure = publicProcedure.use(enforceUserIsAdmin);

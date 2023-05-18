@@ -52,7 +52,6 @@ model Instructions {
   projectVariantId String?
   hasCodeBlocks    Boolean         @default(true)
   codeBlock        CodeBlocks[]
-  successMedia     SuccessMedia[]
   questions        Questions[]
   title            String          @default("") @db.LongText
 }
@@ -89,15 +88,6 @@ model CodeBlocks {
   instructions   Instructions? @relation(fields: [instructionsId], references: [id], onDelete: Cascade)
   code           String        @db.LongText
   fileName       String
-}
-
-model SuccessMedia {
-  id             String        @id @default(cuid())
-  createdAt      DateTime      @default(now())
-  instructionsId String
-  instructions   Instructions? @relation(fields: [instructionsId], references: [id], onDelete: Cascade)
-  mediaUrl       String
-  caption        String?
 }
 
 enum FrontendVariant {

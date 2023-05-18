@@ -7,7 +7,6 @@ import {
   type Instructions,
   type Projects,
   type ProjectVariant,
-  type SuccessMedia,
 } from "@prisma/client";
 import React, { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
@@ -25,7 +24,6 @@ type Props = {
     | (Projects & {
         projectVariants: (ProjectVariant & {
           instructions: (Instructions & {
-            successMedia: SuccessMedia[];
             codeBlock: CodeBlocks[];
           })[];
         })[];

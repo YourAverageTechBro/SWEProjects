@@ -1,6 +1,6 @@
 import {
+  adminProcedure,
   createTRPCRouter,
-  privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { z } from "zod";
@@ -200,7 +200,6 @@ export const projectsRouter = createTRPCRouter({
                 instructions: {
                   include: {
                     codeBlock: true,
-                    successMedia: true,
                   },
                 },
               },
@@ -289,7 +288,7 @@ export const projectsRouter = createTRPCRouter({
         throw error;
       }
     }),
-  create: privateProcedure
+  create: adminProcedure
     .input(
       z.object({
         frontendVariant: z.nativeEnum(FrontendVariant),
