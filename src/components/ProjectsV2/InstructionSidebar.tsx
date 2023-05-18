@@ -6,6 +6,11 @@ import QuestionAndAnswerComponent from "~/components/QuestionsAndAnswers/Questio
 import { useRouter } from "next/router";
 import QuestionsPurchaseNudge from "~/components/ProjectsV2/QuestionsPurchaseNudge";
 import PurchaseNudge from "~/components/ProjectsV2/PurchaseNudge";
+import { PlusIcon } from "@heroicons/react/24/solid";
+import { api } from "~/utils/api";
+import { toast } from "react-hot-toast";
+import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import TableOfContentBlock from "~/components/ProjectsV2/TableOfContentBlock";
 
 enum SideBarContent {
   TABLE_OF_CONTENTS = "Table of Contents",
@@ -25,6 +30,7 @@ type Props = {
   hasPurchasedProject: boolean;
   stripePriceId: string;
   projectAccessType: ProjectAccessType;
+  projectVariantId: string;
 };
 export default function InstructionLeftSidebar({
   isEditing,
@@ -37,12 +43,30 @@ export default function InstructionLeftSidebar({
   hasPurchasedProject,
   stripePriceId,
   projectAccessType,
+  projectVariantId,
 }: Props) {
   const isFreeProject = projectAccessType === ProjectAccessType.Free;
   const router = useRouter();
   const [focusedSideBarContent, setFocusedSideBarContent] = useState(
     SideBarContent.INSTRUCTIONS
   );
+
+  const { mutate: createNewInstruction, isLoading: isCreatingNewInstruction } =
+    api.instructions.createEmptyInstruction.useMutation({
+      onSuccess: () => {
+        void router.replace(router.asPath);
+      },
+      onError: (e) => {
+        const errorMessage = e.data?.zodError?.fieldErrors.content;
+        if (errorMessage && errorMessage[0]) {
+          toast.error(errorMessage[0]);
+        } else {
+          toast.error(
+            "Failed to create a new instruction. Please try again later."
+          );
+        }
+      },
+    });
 
   return (
     <div className={"h-70vh relative h-full overflow-y-scroll"}>
@@ -67,25 +91,31 @@ export default function InstructionLeftSidebar({
       </div>
       <div className={"flex h-[70vh] flex-col overflow-scroll"}>
         {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
-          projectInstructionTitles.map((entry, index) => {
-            return (
-              <button
-                key={entry.id}
-                className={`border p-4 text-left text-lg font-bold hover:bg-gray-100 ${
-                  instruction.id === entry.id ? "bg-gray-300" : ""
-                }`}
-                onClick={() => {
-                  void (async () => {
-                    await router.push(
-                      `/projectsv2/${projectId}?instructionId=${entry.id}`
-                    );
-                  })();
-                }}
-              >
-                {index + 1}. {entry.title}
-              </button>
-            );
-          })}
+          projectInstructionTitles.map((entry, index) => (
+            <TableOfContentBlock
+              entry={entry}
+              instructionId={instruction.id}
+              projectId={projectId}
+              index={index}
+              key={index}
+              isEditingProject={isEditing}
+            />
+          ))}
+        {focusedSideBarContent === SideBarContent.TABLE_OF_CONTENTS &&
+          isEditing && (
+            <button
+              className={
+                "mx-4 mt-4 inline-flex justify-center rounded-md border py-4 hover:bg-gray-200"
+              }
+              onClick={() => createNewInstruction({ projectVariantId })}
+            >
+              {isCreatingNewInstruction ? (
+                <LoadingSpinner styleOverride={"h-6 w-6"} />
+              ) : (
+                <PlusIcon className={"h-6 w-6"} />
+              )}
+            </button>
+          )}
 
         {focusedSideBarContent === SideBarContent.INSTRUCTIONS &&
           (hasPurchasedProject || !isAtPagePreviewLimit || isFreeProject) && (

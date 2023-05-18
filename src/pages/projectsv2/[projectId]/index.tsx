@@ -57,7 +57,12 @@ export default function EditProject({
   );
 
   useEffect(() => {
-    if (user && isSignedIn && indexOfCurrentInstruction !== -1) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      user &&
+      isSignedIn &&
+      indexOfCurrentInstruction !== -1
+    ) {
       postHog?.identify(user.id, {
         name: user.fullName,
         email: user.primaryEmailAddress?.emailAddress,
@@ -83,6 +88,8 @@ export default function EditProject({
         refetchOnWindowFocus: false,
       }
     );
+
+  console.log("instructions: ", instruction);
 
   const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
     api.projects.getUsersPurchasedProjects.useQuery(
@@ -149,7 +156,7 @@ export default function EditProject({
     (purchasedProject) => purchasedProject.id === projectId
   );
 
-  if (!instruction) return <div> 404 </div>;
+  if (!instruction || !projectVariantId) return <div> 404 </div>;
 
   const isFreeProject = projectAccessType === ProjectAccessType.Free;
 
@@ -214,6 +221,7 @@ export default function EditProject({
               }
               stripePriceId={stripePriceId}
               projectAccessType={projectAccessType}
+              projectVariantId={projectVariantId}
             />
           </div>
           {instruction.hasCodeBlocks &&

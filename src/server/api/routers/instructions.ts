@@ -68,6 +68,7 @@ export const instructionsRouter = createTRPCRouter({
                 },
               ],
             },
+            title: "Empty Instruction",
           },
         });
 
@@ -156,12 +157,18 @@ export const instructionsRouter = createTRPCRouter({
           })
           .optional(),
         hasCodeBlocks: z.boolean().optional(),
+        title: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const { successMedia, instructionId, explanation, hasCodeBlocks } =
-          input;
+        const {
+          successMedia,
+          instructionId,
+          explanation,
+          hasCodeBlocks,
+          title,
+        } = input;
         ctx.log?.info("[instructions] Starting endpoint", {
           userId: ctx.userId,
           function: "update",
@@ -169,7 +176,9 @@ export const instructionsRouter = createTRPCRouter({
         });
 
         const updatedData: InstructionsUpdateInput = {};
-        if (explanation) updatedData.explanation = explanation;
+        if (explanation) {
+          updatedData.explanation = explanation;
+        }
         if (successMedia) {
           updatedData.successMedia = {
             create: [successMedia],
@@ -179,6 +188,10 @@ export const instructionsRouter = createTRPCRouter({
           updatedData.hasCodeBlocks = {
             set: hasCodeBlocks,
           };
+        }
+
+        if (title) {
+          updatedData.title = title;
         }
 
         const result = await ctx.prisma.instructions.update({

@@ -223,7 +223,7 @@ export const codeBlocksRouter = createTRPCRouter({
           input: JSON.stringify(input),
         });
         const { fileName, createdAt, projectVariantId } = input;
-        if (!fileName || !createdAt || !projectVariantId) return;
+        if (!fileName || !createdAt || !projectVariantId) return null;
         const result = await ctx.prisma.instructions.findMany({
           where: {
             projectVariantId,
