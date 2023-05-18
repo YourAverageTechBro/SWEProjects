@@ -249,7 +249,6 @@ export const projectsRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string().nullable().optional(),
-        projectId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -262,7 +261,6 @@ export const projectsRouter = createTRPCRouter({
         if (!input.userId) return [];
         const filter: ProjectsFindManyArgs = {
           where: {
-            id: input.projectId,
             purchases: {
               some: {
                 userId: input.userId,
