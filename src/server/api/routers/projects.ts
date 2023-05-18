@@ -4,7 +4,12 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { z } from "zod";
-import { BackendVariant, FrontendVariant, Prisma } from "@prisma/client";
+import {
+  BackendVariant,
+  FrontendVariant,
+  Prisma,
+  ProjectEnrollmentType,
+} from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import ProjectsFindUniqueArgs = Prisma.ProjectsFindUniqueArgs;
 import ProjectsFindManyArgs = Prisma.ProjectsFindManyArgs;
@@ -86,7 +91,7 @@ export const projectsRouter = createTRPCRouter({
         };
         if (input.userId) {
           filter.include = {
-            purchases: {
+            projectEnrollments: {
               where: {
                 userId: input.userId,
               },
@@ -105,7 +110,7 @@ export const projectsRouter = createTRPCRouter({
         });
         return post as Prisma.ProjectsGetPayload<{
           include: {
-            purchases: true;
+            projectEnrollments: true;
           };
         }>;
       } catch (error) {
@@ -261,9 +266,10 @@ export const projectsRouter = createTRPCRouter({
         if (!input.userId) return null;
         const filter: ProjectsFindManyArgs = {
           where: {
-            purchases: {
+            projectEnrollments: {
               some: {
                 userId: input.userId,
+                projectEnrollmentType: ProjectEnrollmentType.FullTutorial,
               },
             },
           },

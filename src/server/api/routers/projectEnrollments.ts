@@ -1,22 +1,30 @@
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { z } from "zod";
+import { ProjectEnrollmentType } from "@prisma/client";
 
-export const purchasesRouter = createTRPCRouter({
+export const projectEnrollmentsRouter = createTRPCRouter({
   create: privateProcedure
-    .input(z.object({ projectsId: z.string(), userId: z.string() }))
+    .input(
+      z.object({
+        projectsId: z.string(),
+        userId: z.string(),
+        projectEnrollmentType: z.nativeEnum(ProjectEnrollmentType),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
-        const { projectsId, userId } = input;
+        const { projectEnrollmentType, projectsId, userId } = input;
         ctx.log?.info("[purchases] Starting endpoint", {
           userId: ctx.userId,
           function: "create",
           input: JSON.stringify(input),
         });
 
-        const result = await ctx.prisma.purchases.create({
+        const result = await ctx.prisma.projectEnrollment.create({
           data: {
             projectsId,
             userId,
+            projectEnrollmentType,
           },
         });
 

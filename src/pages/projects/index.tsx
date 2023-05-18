@@ -15,9 +15,14 @@ type Props = {
 };
 export default function Projects({ isNewUiEnabled }: Props) {
   const { userId } = useAuth();
-  const { data, isFetching } = api.projects.getUsersPurchasedProjects.useQuery({
-    userId,
-  });
+  const { data, isFetching } = api.projects.getUsersPurchasedProjects.useQuery(
+    {
+      userId,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
   if (isFetching) return <LoadingSpinner />;
   return (
     <>

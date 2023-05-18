@@ -7,8 +7,8 @@ import { type GetServerSideProps } from "next";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import {
   ProjectAccessType,
+  type ProjectEnrollment,
   type Projects,
-  type Purchases,
 } from "@prisma/client";
 import { api } from "~/utils/api";
 import { log } from "next-axiom";
@@ -24,7 +24,11 @@ type ProjectsWithCreatedAtString = Omit<Projects, "createdAt"> & {
 };
 
 type Props = {
-  project: (ProjectsWithCreatedAtString & { purchases: Purchases[] }) | null;
+  project:
+    | (ProjectsWithCreatedAtString & {
+        projectEnrollments: ProjectEnrollment[];
+      })
+    | null;
   stripePrice: number | undefined;
   isNewProjectsUiEnabled: boolean;
 };

@@ -9,28 +9,29 @@ generator client {
 }
 
 model Projects {
-  id                String             @id @default(cuid())
-  createdAt         DateTime           @default(now())
-  authorId          String
-  projectVariants   ProjectVariant[]
-  thumbnailUrl      String             @default("")
-  title             String             @default("") @db.LongText
-  description       String             @default("") @db.LongText
-  videoDemoUrl      String             @default("")
-  stripePriceId     String             @default("")
-  purchases         Purchases[]
-  preRequisites     String?            @default("") @db.LongText
-  projectAccessType ProjectAccessType? @default(Free)
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  authorId           String
+  projectVariants    ProjectVariant[]
+  thumbnailUrl       String              @default("")
+  title              String              @default("") @db.LongText
+  description        String              @default("") @db.LongText
+  videoDemoUrl       String              @default("")
+  stripePriceId      String              @default("")
+  projectEnrollments ProjectEnrollment[]
+  preRequisites      String?             @default("") @db.LongText
+  projectAccessType  ProjectAccessType?  @default(Free)
 
   @@index([authorId])
 }
 
-model Purchases {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  Projects   Projects? @relation(fields: [projectsId], references: [id])
-  projectsId String?
-  userId     String
+model ProjectEnrollment {
+  id                    String                @id @default(cuid())
+  createdAt             DateTime              @default(now())
+  Projects              Projects?             @relation(fields: [projectsId], references: [id])
+  projectsId            String?
+  userId                String
+  projectEnrollmentType ProjectEnrollmentType @default(FullTutorial)
 }
 
 model ProjectVariant {
@@ -103,4 +104,9 @@ enum ProjectAccessType {
   Free
   Paid
   Sponsored
+}
+
+enum ProjectEnrollmentType {
+  Preview
+  FullTutorial
 }

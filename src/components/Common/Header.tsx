@@ -57,7 +57,7 @@ export default function Header() {
             }}
           >
             {" "}
-            My projects{" "}
+            Purchased projects{" "}
           </Link>
           <Link
             href="/projects/all"
