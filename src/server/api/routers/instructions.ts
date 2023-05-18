@@ -150,25 +150,13 @@ export const instructionsRouter = createTRPCRouter({
       z.object({
         instructionId: z.string(),
         explanation: z.string().optional(), // array of block notes
-        successMedia: z
-          .object({
-            mediaUrl: z.string(),
-            caption: z.string(),
-          })
-          .optional(),
         hasCodeBlocks: z.boolean().optional(),
         title: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const {
-          successMedia,
-          instructionId,
-          explanation,
-          hasCodeBlocks,
-          title,
-        } = input;
+        const { instructionId, explanation, hasCodeBlocks, title } = input;
         ctx.log?.info("[instructions] Starting endpoint", {
           userId: ctx.userId,
           function: "update",
@@ -178,11 +166,6 @@ export const instructionsRouter = createTRPCRouter({
         const updatedData: InstructionsUpdateInput = {};
         if (explanation) {
           updatedData.explanation = explanation;
-        }
-        if (successMedia) {
-          updatedData.successMedia = {
-            create: [successMedia],
-          };
         }
         if (hasCodeBlocks !== undefined) {
           updatedData.hasCodeBlocks = {
