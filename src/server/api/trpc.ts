@@ -32,8 +32,6 @@ import { type AxiomAPIRequest } from "next-axiom";
 import { type NextApiRequest } from "next";
 import { type JwtPayload } from "@clerk/types";
 
-type CreateContextOptions = Record<string, never>;
-
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
  * it from here.
@@ -44,11 +42,11 @@ type CreateContextOptions = Record<string, never>;
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-export const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+export const createInnerTRPCContext = (userId?: string, isAdmin?: boolean) => {
   return {
     prisma,
-    userId: null,
-    isAdmin: false,
+    userId: userId ?? null,
+    isAdmin: isAdmin ?? false,
   };
 };
 

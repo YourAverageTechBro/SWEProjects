@@ -258,7 +258,7 @@ export const projectsRouter = createTRPCRouter({
           function: "getUsersPurchasedProjects",
           input: JSON.stringify(input),
         });
-        if (!input.userId) return null;
+        if (!input.userId) return [];
         const filter: ProjectsFindManyArgs = {
           where: {
             purchases: {
