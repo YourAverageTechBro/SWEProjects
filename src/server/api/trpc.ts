@@ -48,6 +48,7 @@ export const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
     prisma,
     userId: null,
+    isAdmin: false,
   };
 };
 
