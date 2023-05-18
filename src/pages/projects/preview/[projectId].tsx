@@ -10,12 +10,12 @@ import {
   type Projects,
   type Purchases,
 } from "@prisma/client";
-import { api } from "~/utils/api";
 import { log } from "next-axiom";
 import { usePostHog } from "posthog-js/react";
 import { PostHog } from "posthog-node";
 import { getAuth } from "@clerk/nextjs/server";
-import Link from "next/link";
+import { type JwtPayload } from "@clerk/types";
+import { api } from "~/utils/api";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
@@ -27,11 +27,15 @@ type Props = {
   project: (ProjectsWithCreatedAtString & { purchases: Purchases[] }) | null;
   stripePrice: number | undefined;
   isNewProjectsUiEnabled: boolean;
+  hasPurchasedProject: boolean;
+  hasEnrolledInProjectPreview: boolean;
 };
 export default function PreviewPage({
   project,
   stripePrice,
   isNewProjectsUiEnabled,
+  hasPurchasedProject,
+  hasEnrolledInProjectPreview,
 }: Props) {
   const router = useRouter();
   const [redirectUrl, setRedirectUrl] = useState("");
@@ -40,11 +44,6 @@ export default function PreviewPage({
   const { canceledPayment } = router.query as { canceledPayment: string };
   const projectId = project?.id;
   const postHog = usePostHog();
-
-  const { data: purchasedProjects } =
-    api.projects.getUsersPurchasedProjects.useQuery({
-      userId: user?.id,
-    });
 
   useEffect(() => {
     setRedirectUrl(window.location.href);
@@ -81,13 +80,52 @@ export default function PreviewPage({
   }, [projectId, isSignedIn, user, stripePrice]);
   if (!project) return null;
 
-  const userHasPurchasedProject = purchasedProjects?.some(
-    (purchasedProject) => purchasedProject.id === project?.id
-  );
+  const {
+    mutate: trackProjectPreviewEnrollment,
+    isLoading: isTrackingProjectPreviewEnrollment,
+  } = api.projectPreviewEnrollments.create.useMutation({
+    onError: () => {
+      log.error(
+        `[projects[preview][${
+          projectId ?? ""
+        }]: Error tracking project preview enrollment`
+      );
+    },
+  });
+
+  const attemptToTrackPreviewEnrollment = () => {
+    const email = user?.emailAddresses?.[0]?.emailAddress;
+    if (!hasEnrolledInProjectPreview && user?.id && projectId && email) {
+      trackProjectPreviewEnrollment({
+        email,
+        projectsId: projectId,
+        userId: user.id,
+      });
+    }
+  };
+
+  const { mutate: purchaseProject } = api.purchases.create.useMutation({
+    onError: () => {
+      log.error(
+        `[projects[preview][${
+          projectId ?? ""
+        }]: Error tracking project preview enrollment`
+      );
+    },
+  });
+
+  const attemptToPurchaseProject = () => {
+    if (!hasPurchasedProject && user?.id && projectId) {
+      purchaseProject({
+        projectsId: projectId,
+        userId: user.id,
+      });
+    }
+  };
 
   const oldPreviewUi = (
     <>
-      {user?.id && !userHasPurchasedProject && (
+      {user?.id && !hasPurchasedProject && (
         <form
           action={`/api/checkout_sessions?userId=${
             user.id ?? ""
@@ -133,17 +171,28 @@ export default function PreviewPage({
 
   const newPreviewUi = (
     <div className={"mb-8 flex w-full flex-col justify-center gap-4"}>
-      <Link href={`/projectsv2/${project.id}`}>
-        <button className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-          {" "}
-          {project.projectAccessType === ProjectAccessType.Free
-            ? "View the FREE coding tutorial"
-            : "Preview the tutorial"}
-        </button>
-      </Link>
+      <button
+        className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        onClick={() => {
+          if (project?.projectAccessType === ProjectAccessType.Free) {
+            attemptToPurchaseProject();
+          } else if (project.projectAccessType === ProjectAccessType.Paid) {
+            attemptToTrackPreviewEnrollment();
+          }
+          void router.push(`/projectsv2/${project.id}`);
+        }}
+      >
+        {!isTrackingProjectPreviewEnrollment &&
+        project.projectAccessType === ProjectAccessType.Free
+          ? "View the FREE coding tutorial"
+          : "Preview the tutorial"}
+        {isTrackingProjectPreviewEnrollment && (
+          <LoadingSpinner spinnerColor="fill-indigo-500 text-white" />
+        )}
+      </button>
 
       {user?.id &&
-        !userHasPurchasedProject &&
+        !hasPurchasedProject &&
         project.projectAccessType !== ProjectAccessType.Free && (
           <form
             action={`/api/checkout_sessions?userId=${
@@ -233,7 +282,7 @@ export default function PreviewPage({
                 {project.title}
               </p>
               {!isNewProjectsUiEnabled &&
-                !userHasPurchasedProject &&
+                !hasPurchasedProject &&
                 stripePrice && (
                   <p
                     className={
@@ -244,10 +293,10 @@ export default function PreviewPage({
                   </p>
                 )}
               {!stripePrice && <LoadingSpinner />}
-              {isNewProjectsUiEnabled && !userHasPurchasedProject
+              {isNewProjectsUiEnabled && !hasPurchasedProject
                 ? newPreviewUi
                 : oldPreviewUi}
-              {user?.id && userHasPurchasedProject && (
+              {user?.id && hasPurchasedProject && (
                 <button
                   role="link"
                   className="mt-4 w-full rounded-md bg-green-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:text-2xl"
@@ -297,15 +346,25 @@ export default function PreviewPage({
   );
 }
 
+type CustomSessionClaims = JwtPayload & {
+  publicMetadata: {
+    isAdmin: boolean;
+  };
+};
+
 export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
   log.info("[projects/preview/[projectId] Starting getStaticProps");
-  const ssg = generateSSGHelper();
-
+  const session = getAuth(context.req);
+  const userId = session.userId;
+  const isAdmin =
+    (session.sessionClaims as CustomSessionClaims)?.publicMetadata?.isAdmin ??
+    false;
+  const ssg = generateSSGHelper(userId ?? undefined, isAdmin);
   const projectId = context.params?.projectId;
 
-  if (typeof projectId !== "string") {
+  if (typeof projectId !== "string" || !projectId) {
     log.error("[projects/preview/[projectId] No projectId");
     throw new Error("no projectId");
   }
@@ -321,7 +380,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     stripePrice = await ssg.stripe.getPrices.fetch({ priceId });
   }
 
-  const { userId } = getAuth(context.req);
+  const purchasedProjects = await ssg.projects.getUsersPurchasedProjects.fetch({
+    userId,
+  });
 
   let isNewProjectsUiEnabled = true;
   if (userId) {
@@ -335,6 +396,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     await client.shutdownAsync();
   }
 
+  const projectPreviewEnrollments =
+    await ssg.projectPreviewEnrollments.getUsersProjectPreviewEnrollmentsForProjectId.fetch(
+      {
+        userId,
+        projectsId: projectId,
+      }
+    );
+
   return {
     props: {
       project: {
@@ -343,6 +412,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       },
       stripePrice,
       isNewProjectsUiEnabled,
+      hasPurchasedProject: purchasedProjects.some(
+        (purchasedProject) => purchasedProject.id === project.id
+      ),
+      hasEnrolledInProjectPreview: projectPreviewEnrollments.length > 0,
     },
   };
 };
