@@ -6,6 +6,7 @@ import { purchasesRouter } from "~/server/api/routers/purchases";
 import { stripeRouter } from "~/server/api/routers/stripe";
 import { questionsRouter } from "~/server/api/routers/questions";
 import { commentsRouter } from "~/server/api/routers/comments";
+import { projectPreviewEnrollmentsRouter } from "~/server/api/routers/projectPreviewEnrollments";
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   purchases: purchasesRouter,
   questions: questionsRouter,
   stripe: stripeRouter,
+  projectPreviewEnrollments: projectPreviewEnrollmentsRouter,
 });
 
 // export type definition of API

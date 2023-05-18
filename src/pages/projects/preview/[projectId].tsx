@@ -7,15 +7,14 @@ import { type GetServerSideProps } from "next";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import {
   ProjectAccessType,
+  type ProjectPreviewEnrollment,
   type Projects,
   type Purchases,
 } from "@prisma/client";
-import { api } from "~/utils/api";
 import { log } from "next-axiom";
 import { usePostHog } from "posthog-js/react";
 import { PostHog } from "posthog-node";
 import { getAuth } from "@clerk/nextjs/server";
-import Link from "next/link";
 
 const preRequisiteColors = ["bg-green-300", "bg-yellow-300", "bg-red-300"];
 
@@ -27,11 +26,14 @@ type Props = {
   project: (ProjectsWithCreatedAtString & { purchases: Purchases[] }) | null;
   stripePrice: number | undefined;
   isNewProjectsUiEnabled: boolean;
+  purchasedProjects: Projects[];
+  projectPreviewEnrollments: ProjectPreviewEnrollment[];
 };
 export default function PreviewPage({
   project,
   stripePrice,
   isNewProjectsUiEnabled,
+  purchasedProjects,
 }: Props) {
   const router = useRouter();
   const [redirectUrl, setRedirectUrl] = useState("");
@@ -40,11 +42,6 @@ export default function PreviewPage({
   const { canceledPayment } = router.query as { canceledPayment: string };
   const projectId = project?.id;
   const postHog = usePostHog();
-
-  const { data: purchasedProjects } =
-    api.projects.getUsersPurchasedProjects.useQuery({
-      userId: user?.id,
-    });
 
   useEffect(() => {
     setRedirectUrl(window.location.href);
@@ -133,14 +130,17 @@ export default function PreviewPage({
 
   const newPreviewUi = (
     <div className={"mb-8 flex w-full flex-col justify-center gap-4"}>
-      <Link href={`/projectsv2/${project.id}`}>
-        <button className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-          {" "}
-          {project.projectAccessType === ProjectAccessType.Free
-            ? "View the FREE coding tutorial"
-            : "Preview the tutorial"}
-        </button>
-      </Link>
+      <button
+        className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        onClick={() => {
+          void router.push(`/projectsv2/${project.id}`);
+        }}
+      >
+        {" "}
+        {project.projectAccessType === ProjectAccessType.Free
+          ? "View the FREE coding tutorial"
+          : "Preview the tutorial"}
+      </button>
 
       {user?.id &&
         !userHasPurchasedProject &&
@@ -305,7 +305,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   const projectId = context.params?.projectId;
 
-  if (typeof projectId !== "string") {
+  if (typeof projectId !== "string" || !projectId) {
     log.error("[projects/preview/[projectId] No projectId");
     throw new Error("no projectId");
   }
@@ -323,6 +323,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   const { userId } = getAuth(context.req);
 
+  const purchasedProjects = await ssg.projects.getUsersPurchasedProjects.fetch({
+    userId,
+    projectId,
+  });
+
   let isNewProjectsUiEnabled = true;
   if (userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
@@ -335,6 +340,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     await client.shutdownAsync();
   }
 
+  const projectPreviewEnrollments =
+    await ssg.projectPreviewEnrollments.getUsersProjectPreviewEnrollmentsForProjectId.fetch(
+      {
+        userId,
+        projectsId: projectId,
+      }
+    );
+
   return {
     props: {
       project: {
@@ -343,6 +356,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       },
       stripePrice,
       isNewProjectsUiEnabled,
+      purchasedProjects,
+      projectPreviewEnrollments,
     },
   };
 };
