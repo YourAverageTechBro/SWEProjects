@@ -200,7 +200,6 @@ export const projectsRouter = createTRPCRouter({
                 instructions: {
                   include: {
                     codeBlock: true,
-                    successMedia: true,
                   },
                 },
               },
