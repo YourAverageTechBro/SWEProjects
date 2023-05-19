@@ -14,14 +14,14 @@ import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
   projects: Omit<Projects, "createdAt">[];
-  isNewProjectsUIEnabled: boolean;
+  isNewProjectCreationFlowEnabled: boolean;
 };
 export default function MyProjects({
-  isNewProjectsUIEnabled,
+  isNewProjectCreationFlowEnabled,
   projects,
 }: Props) {
   const router = useRouter();
-  if (!isNewProjectsUIEnabled) {
+  if (!isNewProjectCreationFlowEnabled) {
     void router.push("/projects");
   }
 
@@ -94,14 +94,15 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       (await ssg.projects.getUsersCreatedProjects.fetch({ userId })) ?? [];
   }
 
-  let isNewProjectsUIEnabled = false;
+  let isNewProjectCreationFlowEnabled = false;
   if (userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
       host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
     });
 
-    isNewProjectsUIEnabled =
-      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+    isNewProjectCreationFlowEnabled =
+      (await client.isFeatureEnabled("new-projects-creation-flow", userId)) ??
+      false;
 
     await client.shutdownAsync();
   }
@@ -111,7 +112,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       projects: projects
         .reverse()
         .map((project) => ({ ...project, createdAt: null })),
-      isNewProjectsUIEnabled,
+      isNewProjectCreationFlowEnabled,
     },
   };
 };
