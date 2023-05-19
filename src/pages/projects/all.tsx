@@ -153,7 +153,6 @@ export const getStaticProps: GetStaticProps = async () => {
   log.info("[projects/preview/[projectId] Starting getStaticProps");
   const ssg = generateSSGHelper();
   const projects = await ssg.projects.getAll.fetch();
-  console.log("HEY PROJECTS: ", projects);
   if (!projects) {
     log.error("[projects/preview/[projectId] No project");
     throw new Error("no projects");
