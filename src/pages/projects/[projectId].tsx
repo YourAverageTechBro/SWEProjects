@@ -1,9 +1,7 @@
 import { useRouter } from "next/router";
 import DraftPageComponent from "../../components/DraftProjects/DraftPageComponent";
 import {
-  BackendVariant,
   type CodeBlocks,
-  FrontendVariant,
   type Instructions,
   type Projects,
   type ProjectVariant,
@@ -132,8 +130,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   }
   const project = await ssg.projects.getById.fetch({
     projectId,
-    frontendVariant: FrontendVariant.NextJS,
-    backendVariant: BackendVariant.Supabase,
   });
 
   if (!project) {
