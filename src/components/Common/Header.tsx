@@ -8,11 +8,14 @@ import {
 import { Button } from "src/components/LandingPage/Button";
 import Link from "next/link";
 import { Logo } from "~/components/LandingPage/Logo";
-import { usePostHog } from "posthog-js/react";
+import { useFeatureFlagEnabled, usePostHog } from "posthog-js/react";
 
 export default function Header() {
   const { user } = useUser();
   const postHog = usePostHog();
+  const isNewProjectCreationFlowEnabled = useFeatureFlagEnabled(
+    "new-project-creation-flow"
+  );
 
   return (
     <header
@@ -40,7 +43,7 @@ export default function Header() {
       </Link>
       <div className={"flex items-center gap-8"}>
         <SignedIn>
-          {
+          {isNewProjectCreationFlowEnabled && (
             <Link
               href="/my-projects"
               aria-label="
@@ -50,7 +53,7 @@ export default function Header() {
               {" "}
               My Project Tutorials
             </Link>
-          }
+          )}
           <Link
             href="/projects"
             aria-label="My projects"
