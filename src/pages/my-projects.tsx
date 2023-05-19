@@ -9,25 +9,28 @@ import { type Projects } from "@prisma/client";
 import { PostHog } from "posthog-node";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
+import { PhotoIcon } from "@heroicons/react/24/solid";
+import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
-  projects: Projects[];
-  isNewProjectsUIEnabled: boolean;
+  projects: Omit<Projects, "createdAt">[];
+  isNewProjectCreationFlowEnabled: boolean;
 };
 export default function MyProjects({
-  isNewProjectsUIEnabled,
+  isNewProjectCreationFlowEnabled,
   projects,
 }: Props) {
   const router = useRouter();
-  if (!isNewProjectsUIEnabled) {
+  if (!isNewProjectCreationFlowEnabled) {
     void router.push("/projects");
   }
 
-  const { mutate: createNewProject } = api.projects.create.useMutation({
-    onSuccess: (data) => {
-      void router.push(`/projectsv2/${data.id}`);
-    },
-  });
+  const { mutate: createNewProject, isLoading: isCreatingNewProject } =
+    api.projects.create.useMutation({
+      onSuccess: (data) => {
+        void router.push(`/projectsv2/${data.id}`);
+      },
+    });
 
   return (
     <div>
@@ -47,7 +50,30 @@ export default function MyProjects({
           onClick={() => createNewProject()}
         >
           Create Project Tutorial
+          {isCreatingNewProject && <LoadingSpinner />}
         </button>
+        <div className={"mt-8 flex"}>
+          {projects.map((project, index) => (
+            <div
+              key={index}
+              className={
+                "w-96 rounded-lg border hover:cursor-pointer hover:border-2 hover:border-indigo-600"
+              }
+              onClick={() => {
+                void router.push(`/projectsv2/${project.id}`);
+              }}
+            >
+              <div
+                className={"flex h-48 items-center justify-center bg-gray-200"}
+              >
+                <PhotoIcon className={"h-24 w-24"} />
+              </div>
+              <p className={"py-4 text-center text-4xl font-bold"}>
+                {project.title}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -68,22 +94,25 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       (await ssg.projects.getUsersCreatedProjects.fetch({ userId })) ?? [];
   }
 
-  let isNewProjectsUIEnabled = false;
+  let isNewProjectCreationFlowEnabled = false;
   if (userId) {
     const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "", {
       host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com",
     });
 
-    isNewProjectsUIEnabled =
-      (await client.isFeatureEnabled("new-projects-ui", userId)) ?? false;
+    isNewProjectCreationFlowEnabled =
+      (await client.isFeatureEnabled("new-projects-creation-flow", userId)) ??
+      false;
 
     await client.shutdownAsync();
   }
 
   return {
     props: {
-      projects,
-      isNewProjectsUIEnabled,
+      projects: projects
+        .reverse()
+        .map((project) => ({ ...project, createdAt: null })),
+      isNewProjectCreationFlowEnabled,
     },
   };
 };
