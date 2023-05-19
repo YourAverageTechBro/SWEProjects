@@ -277,7 +277,7 @@ export default function PreviewPage({
                   className="mt-4 w-full rounded-md bg-green-600 py-6 text-xl font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:text-2xl"
                   onClick={() => {
                     void (async () => {
-                      await router.push(`/projects/${project.id}`);
+                      await router.push(`/projectsv2/${project.id}`);
                     })();
                   }}
                 >
