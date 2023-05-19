@@ -14,14 +14,15 @@ model Projects {
   authorId                  String
   projectVariants           ProjectVariant[]
   thumbnailUrl              String                     @default("")
-  title                     String                     @default("") @db.LongText
-  description               String                     @default("") @db.LongText
+  title                     String                     @default("Sample title") @db.LongText
+  description               String                     @default("An awesome description") @db.LongText
   videoDemoUrl              String                     @default("")
   stripePriceId             String                     @default("")
   purchases                 Purchases[]
   preRequisites             String?                    @default("") @db.LongText
   projectAccessType         ProjectAccessType?         @default(Free)
   projectPreviewEnrollments ProjectPreviewEnrollment[]
+  instructions              Instructions[]
 
   @@index([authorId])
 }
@@ -64,6 +65,8 @@ model Instructions {
   codeBlock        CodeBlocks[]
   questions        Questions[]
   title            String          @default("") @db.LongText
+  Projects         Projects?       @relation(fields: [projectsId], references: [id])
+  projectsId       String?
 }
 
 model Questions {

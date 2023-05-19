@@ -92,10 +92,10 @@ export default function InstructionsToolbar({
   );
 
   const addNewCard = () => {
-    const projectVariantId = currentInstruction.projectVariantId;
-    if (!projectVariantId) return;
+    const projectsId = currentInstruction.projectsId;
+    if (!projectsId) return;
     createNewInstruction({
-      projectVariantId: projectVariantId,
+      projectsId,
     });
   };
 

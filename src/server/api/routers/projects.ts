@@ -5,7 +5,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { z } from "zod";
-import { BackendVariant, FrontendVariant, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import ProjectsFindUniqueArgs = Prisma.ProjectsFindUniqueArgs;
 import ProjectsFindManyArgs = Prisma.ProjectsFindManyArgs;
@@ -118,65 +118,10 @@ export const projectsRouter = createTRPCRouter({
         throw error;
       }
     }),
-  getProjectVariantId: publicProcedure
-    .input(
-      z.object({
-        projectsId: z.string().optional(),
-        frontendVariant: z.nativeEnum(FrontendVariant),
-        backendVariant: z.nativeEnum(BackendVariant),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      try {
-        ctx.log?.info("[projects] Starting endpoint", {
-          userId: ctx.userId,
-          function: "getProjectVariantId",
-          input: JSON.stringify(input),
-        });
-
-        const { projectsId, frontendVariant, backendVariant } = input;
-
-        if (!projectsId || !frontendVariant || !backendVariant) return null;
-        const result = await ctx.prisma.projects.findUnique({
-          where: {
-            id: projectsId,
-          },
-          include: {
-            projectVariants: {
-              where: {
-                frontendVariant: input.frontendVariant,
-                backendVariant: input.backendVariant,
-              },
-            },
-          },
-        });
-
-        if (result?.projectVariants.length !== 1)
-          throw new TRPCError({ code: "CONFLICT" });
-
-        ctx.log?.info("[projects] Completed endpoint", {
-          userId: ctx.userId,
-          function: "getProjectVariantId",
-          input: JSON.stringify(input),
-        });
-
-        return result;
-      } catch (error) {
-        ctx.log?.error("[projects] Failed endpoint", {
-          userId: ctx.userId,
-          function: "getProjectVariantId",
-          input: JSON.stringify(input),
-          error: JSON.stringify(error),
-        });
-        throw error;
-      }
-    }),
   getById: publicProcedure
     .input(
       z.object({
         projectId: z.string().optional(),
-        frontendVariant: z.nativeEnum(FrontendVariant),
-        backendVariant: z.nativeEnum(BackendVariant),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -192,17 +137,9 @@ export const projectsRouter = createTRPCRouter({
             id: input.projectId,
           },
           include: {
-            projectVariants: {
-              where: {
-                frontendVariant: input.frontendVariant,
-                backendVariant: input.backendVariant,
-              },
+            instructions: {
               include: {
-                instructions: {
-                  include: {
-                    codeBlock: true,
-                  },
-                },
+                codeBlock: true,
               },
             },
           },
@@ -224,14 +161,10 @@ export const projectsRouter = createTRPCRouter({
 
         return post as Prisma.ProjectsGetPayload<{
           include: {
-            projectVariants: {
+            instructions: {
               include: {
-                instructions: {
-                  include: {
-                    codeBlock: true;
-                    successMedia: true;
-                  };
-                };
+                codeBlock: true;
+                successMedia: true;
               };
             };
           };
@@ -289,65 +222,49 @@ export const projectsRouter = createTRPCRouter({
         throw error;
       }
     }),
-  create: adminProcedure
-    .input(
-      z.object({
-        frontendVariant: z.nativeEnum(FrontendVariant),
-        backendVariant: z.nativeEnum(BackendVariant),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const authorId = ctx.userId;
-        const { frontendVariant, backendVariant } = input;
-        ctx.log?.info("[projects] Starting endpoint", {
-          userId: ctx.userId,
-          function: "create",
-          input: JSON.stringify(input),
-        });
-        const result = await ctx.prisma.projects.create({
-          data: {
-            authorId,
-            projectVariants: {
-              create: [
-                {
-                  frontendVariant: frontendVariant,
-                  backendVariant: backendVariant,
-                  instructions: {
-                    create: [
-                      {
-                        codeBlock: {
-                          create: [
-                            {
-                              fileName: "index.tsx",
-                              code: "console.log('Hello World!');",
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
+  create: adminProcedure.mutation(async ({ ctx, input }) => {
+    try {
+      const authorId = ctx.userId;
+      ctx.log?.info("[projects] Starting endpoint", {
+        userId: ctx.userId,
+        function: "create",
+        input: JSON.stringify(input),
+      });
+      const result = await ctx.prisma.projects.create({
+        data: {
+          authorId,
+          instructions: {
+            create: [
+              {
+                codeBlock: {
+                  create: [
+                    {
+                      fileName: "index.tsx",
+                      code: "console.log('Hello World!');",
+                    },
+                  ],
                 },
-              ],
-            },
+              },
+            ],
           },
-        });
-        ctx.log?.info("[projects] Completed endpoint", {
-          userId: ctx.userId,
-          function: "create",
-          input: JSON.stringify(input),
-        });
-        return result;
-      } catch (error) {
-        ctx.log?.error("[projects] Failed endpoint", {
-          userId: ctx.userId,
-          function: "create",
-          input: JSON.stringify(input),
-          error: JSON.stringify(error),
-        });
-        throw error;
-      }
-    }),
+        },
+      });
+      ctx.log?.info("[projects] Completed endpoint", {
+        userId: ctx.userId,
+        function: "create",
+        input: JSON.stringify(input),
+      });
+      return result;
+    } catch (error) {
+      ctx.log?.error("[projects] Failed endpoint", {
+        userId: ctx.userId,
+        function: "create",
+        input: JSON.stringify(input),
+        error: JSON.stringify(error),
+      });
+      throw error;
+    }
+  }),
   getUsersCreatedProjects: privateProcedure
     .input(
       z.object({

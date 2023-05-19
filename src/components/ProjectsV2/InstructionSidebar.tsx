@@ -30,7 +30,6 @@ type Props = {
   hasPurchasedProject: boolean;
   stripePriceId: string;
   projectAccessType: ProjectAccessType;
-  projectVariantId: string;
 };
 export default function InstructionLeftSidebar({
   isEditing,
@@ -43,7 +42,6 @@ export default function InstructionLeftSidebar({
   hasPurchasedProject,
   stripePriceId,
   projectAccessType,
-  projectVariantId,
 }: Props) {
   const isFreeProject = projectAccessType === ProjectAccessType.Free;
   const router = useRouter();
@@ -107,7 +105,7 @@ export default function InstructionLeftSidebar({
               className={
                 "mx-4 mt-4 inline-flex justify-center rounded-md border py-4 hover:bg-gray-200"
               }
-              onClick={() => createNewInstruction({ projectVariantId })}
+              onClick={() => createNewInstruction({ projectsId: projectId })}
             >
               {isCreatingNewInstruction ? (
                 <LoadingSpinner styleOverride={"h-6 w-6"} />

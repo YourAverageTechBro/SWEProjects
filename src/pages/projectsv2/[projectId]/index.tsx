@@ -1,9 +1,5 @@
 import { useRouter } from "next/router";
-import {
-  BackendVariant,
-  FrontendVariant,
-  ProjectAccessType,
-} from "@prisma/client";
+import { ProjectAccessType } from "@prisma/client";
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
@@ -25,7 +21,6 @@ type Props = {
   numberOfPreviewPages: number;
   projectAccessType: ProjectAccessType;
   stripePriceId: string;
-  projectVariantId?: string;
 };
 
 export default function EditProject({
@@ -35,7 +30,6 @@ export default function EditProject({
   numberOfPreviewPages,
   projectAccessType,
   stripePriceId,
-  projectVariantId,
 }: Props) {
   const { isSignedIn, user } = useUser();
   const isAdmin = user?.publicMetadata.isAdmin as boolean;
@@ -156,7 +150,7 @@ export default function EditProject({
     (purchasedProject) => purchasedProject.id === projectId
   );
 
-  if (!instruction || !projectVariantId) return <div> 404 </div>;
+  if (!instruction || !projectId) return <div> 404 </div>;
 
   const isFreeProject = projectAccessType === ProjectAccessType.Free;
 
@@ -221,11 +215,9 @@ export default function EditProject({
               }
               stripePriceId={stripePriceId}
               projectAccessType={projectAccessType}
-              projectVariantId={projectVariantId}
             />
           </div>
           {instruction.hasCodeBlocks &&
-            projectVariantId &&
             (isFreeProject || purchasedProject || !isAtPagePreviewLimit) && (
               <div className={"w-full sm:w-2/3"}>
                 <CodeBlocks
@@ -233,7 +225,7 @@ export default function EditProject({
                   isAuthor={isAuthor}
                   isAdmin={isAdmin}
                   isEditing={isEditing}
-                  projectVariantId={projectVariantId}
+                  projectId={projectId}
                 />
               </div>
             )}
@@ -316,17 +308,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       },
     };
   }
-  const project = await ssg.projects.getProjectVariantId.fetch({
-    projectsId: projectId,
-    frontendVariant: FrontendVariant.NextJS,
-    backendVariant: BackendVariant.Supabase,
+  const project = await ssg.projects.getById.fetch({
+    projectId,
   });
 
-  if (
-    !project ||
-    project.projectVariants.length === 0 ||
-    project.projectVariants.length > 1
-  ) {
+  if (!project) {
     log.error(
       "[projectsv2]/[projectId] No project found in getServerSideProps"
     );
@@ -342,24 +328,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     };
   }
 
-  const projectVariant = project.projectVariants[0];
-
-  if (!projectVariant) {
-    return {
-      props: {
-        projectInstructionTitles: [],
-        isQAFeatureEnabled: false,
-        isAuthor: false,
-        numberOfPreviewPages: 0,
-        projectAccessType: ProjectAccessType.Paid,
-        stripePriceId: "",
-      },
-    };
-  }
-
   const projectInstructionTitles =
-    await ssg.instructions.getInstructionTitlesForProjectVariantId.fetch({
-      projectVariantId: projectVariant.id,
+    await ssg.instructions.getInstructionTitlesForProjectId.fetch({
+      projectsId: project.id,
     });
 
   if (!projectInstructionTitles) {
@@ -401,7 +372,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     await client.shutdownAsync();
   }
 
-  const isAuthor = userId === projectVariant.authorId;
+  const isAuthor = userId === project.authorId;
 
   const projectAccessType = project.projectAccessType;
 
@@ -430,7 +401,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       numberOfPreviewPages,
       projectAccessType: projectAccessType,
       stripePriceId: project.stripePriceId,
-      projectVariantId: projectVariant.id,
     },
   };
 };
