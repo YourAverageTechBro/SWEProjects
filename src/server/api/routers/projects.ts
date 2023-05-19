@@ -9,6 +9,7 @@ import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import ProjectsFindUniqueArgs = Prisma.ProjectsFindUniqueArgs;
 import ProjectsFindManyArgs = Prisma.ProjectsFindManyArgs;
+import ProjectsUpdateInput = Prisma.ProjectsUpdateInput;
 
 export const projectsRouter = createTRPCRouter({
   getAll: publicProcedure.query(({ ctx }) => {
@@ -136,13 +137,6 @@ export const projectsRouter = createTRPCRouter({
           where: {
             id: input.projectId,
           },
-          include: {
-            instructions: {
-              include: {
-                codeBlock: true,
-              },
-            },
-          },
         };
         const post = await ctx.prisma.projects.findUnique(filter);
 
@@ -236,6 +230,7 @@ export const projectsRouter = createTRPCRouter({
           instructions: {
             create: [
               {
+                title: "Step title",
                 codeBlock: {
                   create: [
                     {
@@ -293,6 +288,52 @@ export const projectsRouter = createTRPCRouter({
       } catch (error) {
         ctx.log?.error("[projects] Failed endpoint", {
           function: "getUsersCreatedProjects",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
+    }),
+  update: privateProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        title: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { projectId, title } = input;
+        ctx.log?.info("[projects] Starting endpoint", {
+          userId: ctx.userId,
+          function: "update",
+          input: JSON.stringify(input),
+        });
+
+        const updatedData: ProjectsUpdateInput = {};
+
+        if (title) {
+          updatedData.title = title;
+        }
+
+        const result = await ctx.prisma.projects.update({
+          where: {
+            id: projectId,
+          },
+          data: updatedData,
+        });
+
+        ctx.log?.info("[projects] Completed endpoint", {
+          userId: ctx.userId,
+          function: "update",
+          input: JSON.stringify(input),
+          result: JSON.stringify(result),
+        });
+        return result;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          userId: ctx.userId,
+          function: "update",
           input: JSON.stringify(input),
           error: JSON.stringify(error),
         });
