@@ -1,6 +1,7 @@
 import {
   adminProcedure,
   createTRPCRouter,
+  privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { z } from "zod";
@@ -341,6 +342,40 @@ export const projectsRouter = createTRPCRouter({
         ctx.log?.error("[projects] Failed endpoint", {
           userId: ctx.userId,
           function: "create",
+          input: JSON.stringify(input),
+          error: JSON.stringify(error),
+        });
+        throw error;
+      }
+    }),
+  getUsersCreatedProjects: privateProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        ctx.log?.info("[projects] Starting endpoint", {
+          function: "getUsersCreatedProjects",
+          input: JSON.stringify(input),
+        });
+
+        const posts = await ctx.prisma.projects.findMany({
+          where: {
+            authorId: input.userId,
+          },
+        });
+
+        ctx.log?.info("[projects] Completed endpoint", {
+          function: "getUsersCreatedProjects",
+          input: JSON.stringify(input),
+          post: JSON.stringify(posts),
+        });
+        return posts;
+      } catch (error) {
+        ctx.log?.error("[projects] Failed endpoint", {
+          function: "getUsersCreatedProjects",
           input: JSON.stringify(input),
           error: JSON.stringify(error),
         });
