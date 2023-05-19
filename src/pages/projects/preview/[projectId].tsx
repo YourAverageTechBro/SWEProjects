@@ -380,9 +380,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     stripePrice = await ssg.stripe.getPrices.fetch({ priceId });
   }
 
-  const purchasedProjects = await ssg.projects.getUsersPurchasedProjects.fetch({
-    userId,
-  });
+  let purchasedProjects: Projects[] = [];
+  if (userId) {
+    purchasedProjects =
+      (await ssg.projects.getUsersPurchasedProjects.fetch({
+        userId,
+      })) ?? [];
+  }
 
   let isNewProjectsUiEnabled = true;
   if (userId) {
@@ -396,13 +400,16 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     await client.shutdownAsync();
   }
 
-  const projectPreviewEnrollments =
-    await ssg.projectPreviewEnrollments.getUsersProjectPreviewEnrollmentsForProjectId.fetch(
-      {
-        userId,
-        projectsId: projectId,
-      }
-    );
+  let projectPreviewEnrollments = [];
+  if (userId) {
+    projectPreviewEnrollments =
+      (await ssg.projectPreviewEnrollments.getUsersProjectPreviewEnrollmentsForProjectId.fetch(
+        {
+          userId,
+          projectsId: projectId,
+        }
+      )) ?? [];
+  }
 
   return {
     props: {
@@ -412,9 +419,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       },
       stripePrice,
       isNewProjectsUiEnabled,
-      hasPurchasedProject: purchasedProjects.some(
-        (purchasedProject) => purchasedProject.id === project.id
-      ),
+      hasPurchasedProject:
+        purchasedProjects?.some(
+          (purchasedProject) => purchasedProject.id === project.id
+        ) ?? false,
       hasEnrolledInProjectPreview: projectPreviewEnrollments.length > 0,
     },
   };
