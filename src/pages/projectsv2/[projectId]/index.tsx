@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { ProjectAccessType } from "@prisma/client";
+import { ProjectAccessType, type Projects } from "@prisma/client";
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Header from "~/components/Common/Header";
@@ -13,6 +13,7 @@ import { getAuth } from "@clerk/nextjs/server";
 import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
 import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
 import { usePostHog } from "posthog-js/react";
+import ProjectTitleBlock from "~/components/ProjectsV2/ProjectTitleBlock";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -21,6 +22,7 @@ type Props = {
   numberOfPreviewPages: number;
   projectAccessType: ProjectAccessType;
   stripePriceId: string;
+  project: Omit<Projects, "createdAt"> | null;
 };
 
 export default function EditProject({
@@ -30,6 +32,7 @@ export default function EditProject({
   numberOfPreviewPages,
   projectAccessType,
   stripePriceId,
+  project,
 }: Props) {
   const { isSignedIn, user } = useUser();
   const isAdmin = user?.publicMetadata.isAdmin as boolean;
@@ -82,8 +85,6 @@ export default function EditProject({
         refetchOnWindowFocus: false,
       }
     );
-
-  console.log("instructions: ", instruction);
 
   const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
     api.projects.getUsersPurchasedProjects.useQuery(
@@ -193,6 +194,11 @@ export default function EditProject({
             </p>
           )}
         </div>
+        <ProjectTitleBlock
+          projectId={projectId}
+          isEditingProject={isEditing}
+          projectTitle={project?.title ?? ""}
+        />
         <div className={"flex flex-col border sm:h-[70vh] sm:flex-row"}>
           <div
             className={`${
@@ -305,6 +311,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         numberOfPreviewPages: 0,
         projectAccessType: ProjectAccessType.Paid,
         stripePriceId: "",
+        project: null,
       },
     };
   }
@@ -324,6 +331,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         numberOfPreviewPages: 0,
         projectAccessType: ProjectAccessType.Paid,
         stripePriceId: "",
+        project: null,
       },
     };
   }
@@ -345,6 +353,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         numberOfPreviewPages: 0,
         projectAccessType: ProjectAccessType.Paid,
         stripePriceId: "",
+        project: null,
       },
     };
   }
@@ -385,6 +394,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
         numberOfPreviewPages: 0,
         projectAccessType: ProjectAccessType.Paid,
         stripePriceId: "",
+        project: null,
       },
     };
   }
@@ -401,6 +411,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       numberOfPreviewPages,
       projectAccessType: projectAccessType,
       stripePriceId: project.stripePriceId,
+      project: { ...project, createdAt: null },
     },
   };
 };
