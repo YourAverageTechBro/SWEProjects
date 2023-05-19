@@ -212,7 +212,7 @@ export const codeBlocksRouter = createTRPCRouter({
       z.object({
         fileName: z.string().optional(),
         createdAt: z.date().optional(),
-        projectVariantId: z.string().optional(),
+        projectId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -222,11 +222,11 @@ export const codeBlocksRouter = createTRPCRouter({
           function: "getMostRecentDiffForFileName",
           input: JSON.stringify(input),
         });
-        const { fileName, createdAt, projectVariantId } = input;
-        if (!fileName || !createdAt || !projectVariantId) return null;
+        const { fileName, createdAt, projectId } = input;
+        if (!fileName || !createdAt || !projectId) return null;
         const result = await ctx.prisma.instructions.findMany({
           where: {
-            projectVariantId,
+            projectsId: projectId,
             codeBlock: {
               some: {
                 fileName,

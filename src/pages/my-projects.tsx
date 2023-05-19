@@ -8,6 +8,7 @@ import { type CustomSessionClaims } from "~/utils/types";
 import { type Projects } from "@prisma/client";
 import { PostHog } from "posthog-node";
 import { useRouter } from "next/router";
+import { api } from "~/utils/api";
 
 type Props = {
   projects: Projects[];
@@ -22,17 +23,32 @@ export default function MyProjects({
     void router.push("/projects");
   }
 
+  const { mutate: createNewProject } = api.projects.create.useMutation({
+    onSuccess: (data) => {
+      void router.push(`/projectsv2/${data.id}`);
+    },
+  });
+
   return (
     <div>
       <BackgroundGradient />
       <Header />
-      {projects.length === 0 && (
-        <div className={"flex justify-center text-4xl font-bold"}>
-          {
-            "You haven't created a project tutorial yet. Create your first one below!"
-          }
-        </div>
-      )}
+      <div className={"mx-48"}>
+        {projects.length === 0 && (
+          <div className={"flex justify-center text-4xl font-bold"}>
+            {
+              "You haven't created a project tutorial yet. Create your first one below!"
+            }
+          </div>
+        )}
+        <button
+          type="button"
+          className="mt-8 rounded-full bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          onClick={() => createNewProject()}
+        >
+          Create Project Tutorial
+        </button>
+      </div>
     </div>
   );
 }

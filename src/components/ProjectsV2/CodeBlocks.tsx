@@ -23,14 +23,14 @@ type Props = {
   isAuthor: boolean;
   isAdmin: boolean;
   isEditing: boolean;
-  projectVariantId: string;
+  projectId: string;
 };
 export default function CodeBlocks({
   instruction,
   isAuthor,
   isAdmin,
   isEditing,
-  projectVariantId,
+  projectId,
 }: Props) {
   const { data: codeBlocks = [], isFetching } =
     api.codeBlocks.getCodeBlocksForInstructionId.useQuery(
@@ -70,7 +70,7 @@ export default function CodeBlocks({
     {
       fileName: focusedCodeBlock?.fileName,
       createdAt: focusedCodeBlock?.createdAt,
-      projectVariantId,
+      projectId,
     },
     {
       refetchOnWindowFocus: false,

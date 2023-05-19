@@ -45,12 +45,12 @@ export const instructionsRouter = createTRPCRouter({
   createEmptyInstruction: privateProcedure
     .input(
       z.object({
-        projectVariantId: z.string(),
+        projectsId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const { projectVariantId } = input;
+        const { projectsId } = input;
         ctx.log?.info("[instructions] Starting endpoint", {
           userId: ctx.userId,
           function: "createEmptyInstruction",
@@ -59,7 +59,7 @@ export const instructionsRouter = createTRPCRouter({
 
         const result = await ctx.prisma.instructions.create({
           data: {
-            projectVariantId,
+            projectsId,
             codeBlock: {
               create: [
                 {
@@ -201,8 +201,8 @@ export const instructionsRouter = createTRPCRouter({
         throw error;
       }
     }),
-  getInstructionTitlesForProjectVariantId: publicProcedure
-    .input(z.object({ projectVariantId: z.string() }))
+  getInstructionTitlesForProjectId: publicProcedure
+    .input(z.object({ projectsId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
         ctx.log?.info("[instructions] Starting endpoint", {
@@ -217,7 +217,7 @@ export const instructionsRouter = createTRPCRouter({
             title: true,
           },
           where: {
-            projectVariantId: input.projectVariantId,
+            projectsId: input.projectsId,
           },
         });
 
