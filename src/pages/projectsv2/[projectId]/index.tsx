@@ -14,6 +14,7 @@ import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
 import { usePostHog } from "posthog-js/react";
 import ProjectTitleBlock from "~/components/ProjectsV2/ProjectTitleBlock";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
+import InstructionsToolbar from "~/components/ProjectsV2/InstructionsToolbar";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -39,8 +40,9 @@ export default function EditProject({
   hasEnrolledInProjectPreview,
 }: Props) {
   const { isSignedIn, user } = useUser();
-  const isAdmin = user?.publicMetadata.isAdmin as boolean;
   const [isEditing, setIsEditing] = useState(false);
+  const [viewDiff, setViewDiff] = useState(!isEditing);
+  const isAdmin = user?.publicMetadata.isAdmin as boolean;
   const router = useRouter();
   const {
     instructionId = projectInstructionTitles[0]?.id,
@@ -58,10 +60,16 @@ export default function EditProject({
   );
 
   useEffect(() => {
-    if (!hasPurchasedProject && !hasEnrolledInProjectPreview) {
+    if (!isAuthor && !hasPurchasedProject && !hasEnrolledInProjectPreview) {
       void router.push(`/projects/preview/${projectId}`);
     }
-  }, [router, hasPurchasedProject, hasEnrolledInProjectPreview, projectId]);
+  }, [
+    router,
+    isAuthor,
+    hasPurchasedProject,
+    hasEnrolledInProjectPreview,
+    projectId,
+  ]);
 
   useEffect(() => {
     if (
@@ -228,11 +236,19 @@ export default function EditProject({
                   instruction={instruction}
                   isAuthor={isAuthor}
                   isAdmin={isAdmin}
-                  isEditing={isEditing}
+                  viewDiff={viewDiff}
                   projectId={projectId}
                 />
               </div>
             )}
+
+          {(isAuthor || isAdmin) && (
+            <InstructionsToolbar
+              viewDiff={viewDiff}
+              setViewDiff={setViewDiff}
+              currentInstruction={instruction}
+            />
+          )}
         </div>
 
         <div className={"flex justify-end gap-4 pb-8"}>
