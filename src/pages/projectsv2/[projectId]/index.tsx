@@ -8,7 +8,6 @@ import { type GetServerSideProps } from "next";
 import { PostHog } from "posthog-node";
 import { log } from "next-axiom";
 import { api } from "~/utils/api";
-import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import { getAuth } from "@clerk/nextjs/server";
 import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
 import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
@@ -23,6 +22,7 @@ type Props = {
   projectAccessType: ProjectAccessType;
   stripePriceId: string;
   project: Omit<Projects, "createdAt"> | null;
+  hasPurchasedProject: boolean;
 };
 
 export default function EditProject({
@@ -33,6 +33,7 @@ export default function EditProject({
   projectAccessType,
   stripePriceId,
   project,
+  hasPurchasedProject,
 }: Props) {
   const { isSignedIn, user } = useUser();
   const isAdmin = user?.publicMetadata.isAdmin as boolean;
@@ -76,25 +77,14 @@ export default function EditProject({
   const isAtPagePreviewLimit =
     indexOfCurrentInstruction >= numberOfPreviewPages;
 
-  const { data: instruction, isFetching: isFetchingInstruction } =
-    api.instructions.getById.useQuery(
-      {
-        instructionId: instructionId,
-      },
-      {
-        refetchOnWindowFocus: false,
-      }
-    );
-
-  const { data: purchasedProjects, isFetching: isFetchingPurchasedProjects } =
-    api.projects.getUsersPurchasedProjects.useQuery(
-      {
-        userId: user?.id,
-      },
-      {
-        refetchOnWindowFocus: false,
-      }
-    );
+  const { data: instruction } = api.instructions.getById.useQuery(
+    {
+      instructionId: instructionId,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const findPreviousInstruction = () => {
     const currentInstructionIndex = projectInstructionTitles.findIndex(
@@ -144,12 +134,6 @@ export default function EditProject({
   };
 
   if (!projectId) return <div>404</div>;
-  if (isFetchingPurchasedProjects || isFetchingInstruction)
-    return <LoadingSpinner />;
-
-  const purchasedProject = purchasedProjects?.find(
-    (purchasedProject) => purchasedProject.id === projectId
-  );
 
   if (!instruction || !projectId) return <div> 404 </div>;
 
@@ -203,7 +187,7 @@ export default function EditProject({
           <div
             className={`${
               instruction.hasCodeBlocks &&
-              (isFreeProject || purchasedProject || !isAtPagePreviewLimit)
+              (isFreeProject || hasPurchasedProject || !isAtPagePreviewLimit)
                 ? `w-full sm:w-1/3`
                 : "w-full"
             }`}
@@ -217,14 +201,15 @@ export default function EditProject({
               projectId={projectId}
               isAtPagePreviewLimit={isAtPagePreviewLimit}
               hasPurchasedProject={
-                purchasedProject !== null && purchasedProject !== undefined
+                hasPurchasedProject !== null &&
+                hasPurchasedProject !== undefined
               }
               stripePriceId={stripePriceId}
               projectAccessType={projectAccessType}
             />
           </div>
           {instruction.hasCodeBlocks &&
-            (isFreeProject || purchasedProject || !isAtPagePreviewLimit) && (
+            (isFreeProject || hasPurchasedProject || !isAtPagePreviewLimit) && (
               <div className={"w-full sm:w-2/3"}>
                 <CodeBlocks
                   instruction={instruction}
@@ -293,26 +278,32 @@ export default function EditProject({
   );
 }
 
+const emptyProps: Props = {
+  projectInstructionTitles: [],
+  isQAFeatureEnabled: false,
+  isAuthor: false,
+  numberOfPreviewPages: 0,
+  projectAccessType: ProjectAccessType.Paid,
+  stripePriceId: "",
+  project: null,
+  hasPurchasedProject: false,
+};
+
 export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
   log.info("[projectsv2]/[projectId] Starting getServerSideProps");
   const ssg = generateSSGHelper();
-  const projectId = context.params?.projectId as string;
+  const { instructionId, projectId } = context.params as {
+    projectId?: string;
+    instructionId?: string;
+  };
   if (!projectId) {
     log.error(
       "[projectsv2]/[projectId] No projectId found in getServerSideProps"
     );
     return {
-      props: {
-        projectInstructionTitles: [],
-        isQAFeatureEnabled: false,
-        isAuthor: false,
-        numberOfPreviewPages: 0,
-        projectAccessType: ProjectAccessType.Paid,
-        stripePriceId: "",
-        project: null,
-      },
+      props: emptyProps,
     };
   }
   const project = await ssg.projects.getById.fetch({
@@ -324,15 +315,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       "[projectsv2]/[projectId] No project found in getServerSideProps"
     );
     return {
-      props: {
-        projectInstructionTitles: [],
-        isQAFeatureEnabled: false,
-        isAuthor: false,
-        numberOfPreviewPages: 0,
-        projectAccessType: ProjectAccessType.Paid,
-        stripePriceId: "",
-        project: null,
-      },
+      props: emptyProps,
     };
   }
 
@@ -346,15 +329,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       "[projectsv2]/[projectId] No project instruction titles found in getServerSideProps"
     );
     return {
-      props: {
-        projectInstructionTitles: [],
-        isQAFeatureEnabled: false,
-        isAuthor: false,
-        numberOfPreviewPages: 0,
-        projectAccessType: ProjectAccessType.Paid,
-        stripePriceId: "",
-        project: null,
-      },
+      props: emptyProps,
     };
   }
 
@@ -387,17 +362,26 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 
   if (!projectAccessType) {
     return {
-      props: {
-        projectInstructionTitles: [],
-        isQAFeatureEnabled: false,
-        isAuthor: false,
-        numberOfPreviewPages: 0,
-        projectAccessType: ProjectAccessType.Paid,
-        stripePriceId: "",
-        project: null,
-      },
+      props: emptyProps,
     };
   }
+  const firstInstructionId = projectInstructionTitles[0]?.id;
+
+  const instructionIdToFetch = instructionId ?? firstInstructionId;
+
+  if (instructionIdToFetch) {
+    await ssg.instructions.getById.prefetch({
+      instructionId: instructionIdToFetch,
+    });
+
+    await ssg.codeBlocks.getCodeBlocksForInstructionId.prefetch({
+      instructionsId: instructionIdToFetch,
+    });
+  }
+
+  const purchasedProjects = await ssg.projects.getUsersPurchasedProjects.fetch({
+    userId,
+  });
 
   log.info("[projectsv2]/[projectId] Completed getServerSideProps");
 
@@ -412,6 +396,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       projectAccessType: projectAccessType,
       stripePriceId: project.stripePriceId,
       project: { ...project, createdAt: null },
+      hasPurchasedProject: purchasedProjects?.some(
+        (purchasedProject) => purchasedProject.id === projectId
+      ),
+      trpcState: ssg.dehydrate(),
     },
   };
 };
