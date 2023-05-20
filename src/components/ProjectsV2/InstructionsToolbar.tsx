@@ -48,7 +48,7 @@ export default function InstructionsToolbar({
 
   const toggleDiff = () => setViewDiff(!viewDiff);
   return (
-    <div className={"flex flex-col gap-8 px-4 py-4"}>
+    <div className={"flex flex-col gap-8 border-x-2 px-4 py-4"}>
       <div className="group relative flex">
         <DocumentMagnifyingGlassIcon
           className={"h-6 w-6 text-gray-500 hover:cursor-pointer"}
