@@ -16,20 +16,19 @@ import { debounce } from "throttle-debounce";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import LoadingSpinner from "~/components/Common/LoadingSpinner";
 import CodeDiffSection from "~/components/ProjectsV2/CodeDiffSection";
-import InstructionsToolbar from "~/components/ProjectsV2/InstructionsToolbar";
 
 type Props = {
   instruction: Instructions;
   isAuthor: boolean;
   isAdmin: boolean;
-  isEditing: boolean;
+  viewDiff: boolean;
   projectId: string;
 };
 export default function CodeBlocks({
   instruction,
   isAuthor,
   isAdmin,
-  isEditing,
+  viewDiff,
   projectId,
 }: Props) {
   const { data: codeBlocks = [], isFetching } =
@@ -45,8 +44,6 @@ export default function CodeBlocks({
       }
     );
   const [mostRecentFileDiff, setMostRecentFileDiff] = useState("");
-
-  const [viewDiff, setViewDiff] = useState(!isEditing);
 
   const [focusedCodeBlock, setFocusedCodeBlock] = useState<
     CodeBlocks | undefined
@@ -270,15 +267,6 @@ export default function CodeBlocks({
             </div>
           )}
         </div>
-
-        {(isAuthor || isAdmin) && isEditing && (
-          <InstructionsToolbar
-            viewDiff={viewDiff}
-            setViewDiff={setViewDiff}
-            currentInstruction={instruction}
-            codeBlocks={codeBlocks}
-          />
-        )}
 
         {viewDiff && focusedCodeBlock && (
           <CodeDiffSection

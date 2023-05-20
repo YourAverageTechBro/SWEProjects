@@ -63,7 +63,7 @@ export default function PreviewPage({
         price: stripePrice,
       });
     }
-  }, [projectId, isSignedIn, user, stripePrice, canceledPayment]);
+  }, [postHog, projectId, isSignedIn, user, stripePrice, canceledPayment]);
 
   useEffect(() => {
     if (isSignedIn && user) {
@@ -78,7 +78,7 @@ export default function PreviewPage({
         price: stripePrice,
       });
     }
-  }, [projectId, isSignedIn, user, stripePrice]);
+  }, [postHog, projectId, isSignedIn, user, stripePrice]);
   if (!project) return null;
 
   const {
@@ -175,10 +175,13 @@ export default function PreviewPage({
       <button
         className="mt-4 w-full rounded-full bg-indigo-600 px-8 py-6 text-2xl font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         onClick={() => {
-          if (project?.projectAccessType === ProjectAccessType.Free) {
-            attemptToPurchaseProject();
-          } else if (project.projectAccessType === ProjectAccessType.Paid) {
-            attemptToTrackPreviewEnrollment();
+          const userId = user?.id;
+          if (userId && userId !== project?.authorId) {
+            if (project?.projectAccessType === ProjectAccessType.Free) {
+              attemptToPurchaseProject();
+            } else if (project.projectAccessType === ProjectAccessType.Paid) {
+              attemptToTrackPreviewEnrollment();
+            }
           }
           void router.push(`/projectsv2/${project.id}`);
         }}
