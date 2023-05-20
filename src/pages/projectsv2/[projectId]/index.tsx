@@ -13,6 +13,7 @@ import InstructionSidebar from "~/components/ProjectsV2/InstructionSidebar";
 import CodeBlocks from "~/components/ProjectsV2/CodeBlocks";
 import { usePostHog } from "posthog-js/react";
 import ProjectTitleBlock from "~/components/ProjectsV2/ProjectTitleBlock";
+import LoadingSpinner from "~/components/Common/LoadingSpinner";
 
 type Props = {
   projectInstructionTitles: { id: string; title: string }[];
@@ -23,6 +24,7 @@ type Props = {
   stripePriceId: string;
   project: Omit<Projects, "createdAt"> | null;
   hasPurchasedProject: boolean;
+  hasEnrolledInProjectPreview: boolean;
 };
 
 export default function EditProject({
@@ -34,6 +36,7 @@ export default function EditProject({
   stripePriceId,
   project,
   hasPurchasedProject,
+  hasEnrolledInProjectPreview,
 }: Props) {
   const { isSignedIn, user } = useUser();
   const isAdmin = user?.publicMetadata.isAdmin as boolean;
@@ -53,6 +56,12 @@ export default function EditProject({
   const indexOfCurrentInstruction = projectInstructionTitles.findIndex(
     (instruction) => instruction.id === instructionId
   );
+
+  useEffect(() => {
+    if (!hasPurchasedProject && !hasEnrolledInProjectPreview) {
+      void router.push(`/projects/preview/${projectId}`);
+    }
+  }, [router, hasPurchasedProject, hasEnrolledInProjectPreview, projectId]);
 
   useEffect(() => {
     if (
@@ -141,6 +150,10 @@ export default function EditProject({
 
   const previousInstruction = findPreviousInstruction();
   const nextInstruction = findNextInstruction();
+
+  if (!hasPurchasedProject && !hasEnrolledInProjectPreview) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <>
@@ -287,6 +300,7 @@ const emptyProps: Props = {
   stripePriceId: "",
   project: null,
   hasPurchasedProject: false,
+  hasEnrolledInProjectPreview: false,
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (
@@ -383,6 +397,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
     userId,
   });
 
+  const projectPreviewEnrollments =
+    await ssg.projectPreviewEnrollments.getUsersProjectPreviewEnrollmentsForProjectId.fetch(
+      {
+        userId,
+        projectsId: projectId,
+      }
+    );
+
   log.info("[projectsv2]/[projectId] Completed getServerSideProps");
 
   return {
@@ -398,6 +420,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       project: { ...project, createdAt: null },
       hasPurchasedProject: purchasedProjects?.some(
         (purchasedProject) => purchasedProject.id === projectId
+      ),
+      hasEnrolledInProjectPreview: projectPreviewEnrollments?.some(
+        (projectPreviewEnrollment) =>
+          projectPreviewEnrollment.projectsId === projectId
       ),
       trpcState: ssg.dehydrate(),
     },
