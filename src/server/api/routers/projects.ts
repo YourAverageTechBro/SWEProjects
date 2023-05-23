@@ -260,7 +260,7 @@ export const projectsRouter = createTRPCRouter({
       throw error;
     }
   }),
-  getUsersCreatedProjects: privateProcedure
+  getUsersCreatedProjects: publicProcedure
     .input(
       z.object({
         userId: z.string(),
