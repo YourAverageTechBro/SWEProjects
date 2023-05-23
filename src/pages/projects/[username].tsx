@@ -21,8 +21,14 @@ export default function UserProjectsPage({ authorUserId }: Props) {
   if (!projects || projects.length === 0) {
     return (
       <div>
-        <EndOfTheRoad />
-        <p> No projects found </p>
+        <Header />
+        <div className={"flex flex-col items-center justify-center"}>
+          <p className={"text-4xl font-bold"}>
+            {" "}
+            No projects found for this user
+          </p>
+          <EndOfTheRoad tailwindStyle={"w-1/2"} />
+        </div>
       </div>
     );
   }
